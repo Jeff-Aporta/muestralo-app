@@ -23,7 +23,9 @@ Nada de npm, bundlers, React ni Svelte. Iconos **solo** con
 | Archivo | Qué expone |
 |---|---|
 | `msl-loader.js` | `cargarKit(tagsExtra)`: carga los tags `is-*` del CDN, la hoja `msl-kit.css` y los componentes `msl-*`. `baseCdn()` respeta `window.MSL_CDN` para desarrollo local. |
-| `msl-cliente.js` | `MslCliente`: **único** punto que habla con la API. Además `puede(accion)`, `alcance(accion)`, `cargarPermisos()`, `fijarPermisos()`. |
+| `msl-cliente.js` | `MslCliente`: **único** punto que habla con la API. Además `puede(accion)`, `alcance(accion)`, `cargarPermisos()`, `fijarPermisos()` y la lectura con caché `vivo()`. |
+| `msl-cache.js` | Caché de respuestas en IndexedDB: `claveDe`, `leer`, `guardar`, `invalidar`, `vaciar`, `canonico`. |
+| `msl-boot.js` | Arranque de tema antes del primer pintado. **Única** definición: el build lo inserta en línea, no lo reescribe. |
 | `msl-tema.js` | `aplicarTema()`, `montarControlesTema()`, `temaInicial()`, `dinero()`. |
 | `msl-core.js` | `esc()`, `attrJson()`, `setJsonAttr()`: convención de parámetros por atributos. |
 | `msl-kit.css` | Estilos de todos los componentes `msl-*`. Solo tokens `--is-*`. |
@@ -46,6 +48,36 @@ publica (así lo hace la página `/admin/` de cada empresa).
 2. Sus estilos van en `cdn/msl-kit.css`, **nunca** en el CSS de un front.
 3. Registrarlo en la lista `COMPONENTES` de `msl-loader.js`.
 4. Documentarlo en la tabla de arriba.
+
+## Caché de lecturas (IndexedDB)
+
+Toda lectura puede pintarse **al instante** con la última respuesta conocida y
+rehacerse **solo si el servidor trae algo distinto**:
+
+```js
+await MslCliente.productos.vivo(filtro, (datos, { origen, cambio }) => {
+  pintar(datos);   // origen: "cache" | "red"
+});
+```
+
+- `pintar` se llama **una vez** con lo guardado y **otra solo si cambió**. Si la
+  respuesta es idéntica, el componente no se rehace.
+- La clave es `app + quién pregunta + método + ruta + cuerpo canónico`. Dos
+  filtros distintos son dos entradas; las mismas claves en otro orden son la
+  misma. El nickname entra en la clave: nadie ve datos de otra sesión.
+- Solo se cachean `GET` y `QUERY`. Cada mutación **invalida** lo que tocó
+  (tabla `INVALIDA` en `msl-cliente.js`); al cerrar sesión se vacía todo.
+- Si la red falla pero había caché, `vivo()` no lanza: resuelve con lo guardado
+  y avisa por `onError`.
+- **El caché nunca bloquea el pintado.** Si IndexedDB no contesta en 1,5 s
+  (modo privado, cuota, base corrupta) se degrada a memoria por el resto de la
+  sesión. Cada entrada caduca a los 7 días.
+- La forma sin caché sigue existiendo: `MslCliente.productos(filtro)` devuelve
+  una promesa contra la red y también alimenta el caché.
+- Contrato verificado en navegador: `cdn/prueba-cache.html`.
+
+Lecturas con variante `.vivo`: `config`, `productos`, `carrito`, `pedidos`,
+`pagos`, `archivos`, `metricas`, `tenants`, `permisos`, `definiciones`.
 
 ## Temización camaleónica
 
@@ -99,9 +131,14 @@ re-sincronizar `molde/` cuando cambian el build, el runtime o el workflow.
 ## Calidad
 
 `node scripts/verifica-js.mjs <dir>` chequea la sintaxis de todo el JS **como
-módulo**. `node --check archivo.js` parsea como CommonJS y da falsos OK: un
-salto de línea dentro de un string pasó así a producción y dejó el panel en
-blanco. El chequeo corre también en CI (`.github/workflows/verifica.yml`).
+módulo**, incluidos los `<script type="module">` embebidos en HTML.
+`node --check archivo.js` parsea como CommonJS y da falsos OK: un salto de
+línea dentro de un string pasó así a producción y dejó el panel en blanco, y
+el mismo fallo en un HTML impide que la página ejecute nada **sin error
+visible en consola**. El chequeo corre también en CI
+(`.github/workflows/verifica.yml`).
+
+Vista previa con kit local: `node scripts/servir.mjs ../business/demo 8791`.
 
 ## Ver también
 
