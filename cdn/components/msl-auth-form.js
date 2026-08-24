@@ -19,7 +19,7 @@ export class MslAuthForm extends HTMLElement {
           <input name="password" type="password" required minlength="4" autocomplete="current-password">
         </label>
         <is-button type="submit" data-x="entrar"><is-icon icon="mdi:login"></is-icon> Entrar</is-button>
-        ${conRegistro ? `<is-button type="button" data-x="registro" variante="texto">Crear cuenta</is-button>` : ""}
+        ${conRegistro ? `<is-button type="button" data-x="registro" variant="text">Crear cuenta</is-button>` : ""}
         <p class="msl-error" hidden></p>
       </form>`;
     const form = this.querySelector("form");

@@ -9,6 +9,8 @@ const CDN_MSL = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/muestralo-app@main/cdn"
 const TAGS_IS = [
   "is-icon", "is-button", "is-input", "is-card", "is-dialog",
   "is-tab-group", "is-badge", "is-spinner", "is-toast", "is-select",
+  // Temización nativa del kit: no se reimplementa nada de esto.
+  "is-theme-toggle", "is-palette-selector",
 ];
 
 // Componentes msl-* propios del ecosistema.
@@ -17,9 +19,22 @@ const COMPONENTES = [
   "msl-pedido-card", "msl-metrica-card", "msl-imagen-input",
 ];
 
-// window.MSL_CDN lo fija el front solo en dev local; sin él, jsDelivr.
+// window.MSL_CDN lo fija el consumidor (dev local o Pages); sin él, jsDelivr.
+// Se absolutiza contra la PÁGINA: un valor relativo como "./cdn" resolvería
+// contra la URL de este módulo y saldría duplicado (…/cdn/cdn/components/…).
 export function baseCdn() {
-  return (window.MSL_CDN || CDN_MSL).replace(/\/+$/, "");
+  const crudo = (window.MSL_CDN || CDN_MSL).replace(/\/+$/, "");
+  return new URL(crudo, document.baseURI).href.replace(/\/+$/, "");
+}
+
+// Hoja de los componentes msl-*: viaja con el kit, no se copia en cada front.
+function cargarHojaKit(base) {
+  if (document.querySelector('link[data-msl-kit]')) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.dataset.mslKit = "";
+  link.href = `${base}/msl-kit.css`;
+  document.head.append(link);
 }
 
 export async function cargarKit(tagsExtra = []) {
@@ -34,6 +49,7 @@ export async function cargarKit(tagsExtra = []) {
   const { ISWebComponentsLoader: L } = await import(loaderUrl);
   await L.load(...new Set([...TAGS_IS, ...tagsExtra]));
   const base = baseCdn();
+  cargarHojaKit(base);
   for (const nombre of COMPONENTES) {
     await import(`${base}/components/${nombre}.js`);
   }

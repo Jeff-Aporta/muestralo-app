@@ -51,8 +51,9 @@ await cargarKit();  // registra is-* (kit base) y todos los msl-*</pre>
         <tr><th>Módulo</th><th>Qué expone</th></tr>
         <tr><td><code>msl-loader.js</code></td><td><code>cargarKit(tagsExtra)</code>, <code>baseCdn()</code></td></tr>
         <tr><td><code>msl-cliente.js</code></td><td><code>MslCliente</code>: único cliente fetch de la API (QUERY incluido)</td></tr>
-        <tr><td><code>msl-tema.js</code></td><td><code>aplicarTema()</code> (css_vars del tenant en :root), <code>dinero(centavos, moneda)</code></td></tr>
+        <tr><td><code>msl-tema.js</code></td><td><code>aplicarTema()</code>, <code>montarControlesTema()</code>, <code>temaInicial()</code>, <code>dinero(centavos, moneda)</code></td></tr>
         <tr><td><code>msl-core.js</code></td><td><code>esc</code>, <code>attrJson</code>, <code>setJsonAttr</code> (convención de atributos)</td></tr>
+        <tr><td><code>msl-kit.css</code></td><td>Estilos de todos los <code>msl-*</code>. Lo carga el loader: ningún front los redefine.</td></tr>
       </table>
       <h2>Molde generador</h2>
       <p>La carpeta <code>molde/</code> de este repo genera el sitio estático SEO de cada empresa
@@ -105,6 +106,40 @@ await cargarKit();  // registra is-* (kit base) y todos los msl-*</pre>
       <code>demo</code> real de la API.</p>
       <div class="demo"><msl-auth-form titulo="Acceso demo"></msl-auth-form></div>
       <pre>&lt;msl-auth-form titulo="Acceso"&gt;&lt;/msl-auth-form&gt;</pre>`,
+  },
+  {
+    id: "msl-imagen-input", grupo: "Componentes", titulo: "msl-imagen-input",
+    html: `
+      <h1>msl-imagen-input</h1>
+      <p>Sube imágenes redimensionando en el navegador: tres variantes
+      (2048 / 1024 / 320 px, calidad 0.75) que van a R2 por
+      <code>POST /api/archivos</code>. El Worker no procesa imágenes.</p>
+      <p>Atributos: <code>label</code>, <code>entidad</code>, <code>entidad-id</code>,
+      <code>multiple</code>. Propiedad <code>valor</code> (array de URLs).
+      Eventos: <code>msl-subida</code> por archivo y <code>msl-cambio</code> con la lista.</p>
+      <p class="nota">La demo no sube nada: subir exige sesión con permiso
+      <code>POST:/api/archivos</code>.</p>
+      <div class="demo"><msl-imagen-input label="Fotos del producto" multiple entidad="producto"></msl-imagen-input></div>
+      <pre>&lt;msl-imagen-input label="Imágenes" multiple entidad="producto" entidad-id="7"&gt;&lt;/msl-imagen-input&gt;</pre>`,
+  },
+  {
+    id: "temizacion", grupo: "Sistema", titulo: "Temización camaleónica",
+    html: `
+      <h1>Temización camaleónica</h1>
+      <p>No hay sistema propio de temas: se usa el de is-webcomponents.
+      <code>&lt;html data-theme&gt;</code> para claro/oscuro y
+      <code>&lt;html data-palette&gt;</code> para la identidad de marca.</p>
+      <table>
+        <tr><th>Pieza</th><th>Quién la pone</th></tr>
+        <tr><td><code>&lt;is-theme-toggle&gt;</code></td><td>Alterna claro/oscuro del contenedor.</td></tr>
+        <tr><td><code>&lt;is-palette-selector&gt;</code></td><td>Recibe las paletas del tenant e inyecta su CSS bajo demanda.</td></tr>
+        <tr><td><code>GET /api/config</code> → <code>paletas</code></td><td>Las paletas del comercio, como dato.</td></tr>
+        <tr><td><code>GET /tema/{app}/{paleta}.css</code></td><td>La API genera la paleta completa desde el color de marca.</td></tr>
+      </table>
+      <p><strong>Regla dura:</strong> ningún CSS del ecosistema escribe un color
+      literal. Todo sale de tokens <code>--is-*</code>.</p>
+      <pre>import { montarControlesTema } from ".../cdn/msl-tema.js";
+montarControlesTema(document.getElementById("controles"), cfg.paletas);</pre>`,
   },
 ];
 

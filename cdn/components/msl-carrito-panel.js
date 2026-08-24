@@ -30,7 +30,7 @@ export class MslCarritoPanel extends HTMLElement {
             </div>
             <input type="number" min="1" value="${i.cantidad}" style="width:4em">
             <span>${dinero(i.subtotal)}</span>
-            <is-button data-x="quitar" variante="texto"><is-icon icon="mdi:delete"></is-icon></is-button>
+            <is-button data-x="quitar" variant="text"><is-icon icon="mdi:delete"></is-icon></is-button>
           </div>`).join("")}
         <div class="msl-total"><strong>Total</strong><strong>${dinero(c.total)}</strong></div>
         <is-button data-x="congelar" class="msl-congelar"><is-icon icon="mdi:whatsapp"></is-icon> Hacer pedido</is-button>

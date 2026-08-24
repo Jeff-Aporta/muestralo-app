@@ -1,0 +1,178 @@
+/* Capa de estilos de los componentes msl-* — fuente única del ecosistema.
+ *
+ * La carga el propio loader del kit (msl-loader.js), así que quien consuma
+ * un componente por CDN recibe su estilo sin copiar nada. Los tres fronts y
+ * los sitios de empresa comparten exactamente esta capa.
+ *
+ * Regla dura: solo tokens --is-*. La paleta del tenant repinta todo esto.
+ */
+
+msl-producto-card,
+msl-carrito-panel,
+msl-pedido-card,
+msl-auth-form,
+msl-metrica-card,
+msl-imagen-input { display: block; }
+
+/* --------------------------------------------------------------- tarjeta */
+
+.msl-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--is-border-soft);
+  border-radius: var(--is-radius);
+  background: var(--is-bg-elev);
+  box-shadow: var(--is-shadow);
+}
+.msl-card-cuerpo { display: grid; gap: 0.35rem; }
+
+.msl-precio {
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  color: var(--is-text);
+}
+
+/* Hueco sin foto: la marca ocupa el espacio, no un gris muerto. */
+.msl-sin-img {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--is-radius-sm);
+  background: var(--is-bg-soft);
+  color: var(--is-accent);
+  font-size: 2rem;
+}
+
+.msl-acciones { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+
+/* --------------------------------------------------------------- carrito */
+
+.msl-carrito { display: grid; gap: 0.75rem; }
+
+.msl-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block: 0.75rem;
+  border-bottom: 1px solid var(--is-border-soft);
+}
+.msl-item input[type="number"] { width: 4.5rem; }
+
+.msl-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.15rem;
+  font-weight: 650;
+}
+
+.msl-congelar { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+/* --------------------------------------------------------------- pedido */
+
+.msl-pedido {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--is-border-soft);
+  border-radius: var(--is-radius);
+  background: var(--is-bg-elev);
+}
+.msl-pedido header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.msl-pedido code {
+  font-family: var(--is-mono, ui-monospace, monospace);
+  background: var(--is-code-bg);
+  color: var(--is-code-text, var(--is-text));
+  padding: 0.15em 0.45em;
+  border-radius: var(--is-radius-sm);
+}
+.msl-pedido ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; }
+
+/* --------------------------------------------------------------- acceso */
+
+.msl-auth { display: grid; gap: 0.8rem; }
+.msl-auth label { display: grid; gap: 0.25rem; font-size: 0.9rem; color: var(--is-text-soft); }
+.msl-auth small { color: var(--is-text-dim); }
+.msl-auth input {
+  font: inherit;
+  color: var(--is-text);
+  background: var(--is-control-bg);
+  border: 1px solid var(--is-control-border);
+  border-radius: var(--is-radius-sm);
+  padding: 0.55em 0.75em;
+}
+.msl-auth input:focus-visible { outline: 2px solid var(--is-focus); outline-offset: 1px; }
+
+/* --------------------------------------------------------------- métrica */
+
+.msl-metrica {
+  display: grid;
+  gap: 0.2rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--is-border-soft);
+  border-radius: var(--is-radius);
+  background: var(--is-bg-elev);
+}
+.msl-metrica is-icon { font-size: 1.4rem; color: var(--is-accent); }
+.msl-metrica strong { font-size: 1.6rem; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.msl-metrica span { font-size: 0.86rem; color: var(--is-text-dim); }
+
+/* ------------------------------------------------------------- imágenes */
+
+.msl-img-input { display: grid; gap: 0.6rem; }
+.msl-img-label { display: grid; gap: 0.3rem; font-size: 0.9rem; color: var(--is-text-soft); }
+.msl-img-estado { margin: 0; font-size: 0.86rem; color: var(--is-text-dim); }
+.msl-img-galeria { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.msl-img-galeria figure {
+  position: relative;
+  margin: 0;
+  inline-size: 5.5rem;
+  block-size: 5.5rem;
+  border-radius: var(--is-radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--is-border-soft);
+}
+.msl-img-galeria img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+.msl-img-galeria button {
+  position: absolute;
+  inset-block-start: 0.2rem;
+  inset-inline-end: 0.2rem;
+  inline-size: 1.4rem;
+  block-size: 1.4rem;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: var(--is-bg);
+  color: var(--is-text);
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* --------------------------------------------------------------- estados */
+
+.msl-vacio {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--is-text-dim);
+  border: 1px dashed var(--is-border);
+  border-radius: var(--is-radius);
+}
+
+.msl-error {
+  color: var(--is-danger-text, var(--is-color-danger));
+  background: var(--is-danger-soft, transparent);
+  padding: 0.6em 0.9em;
+  border-radius: var(--is-radius-sm);
+  margin: 0;
+}
