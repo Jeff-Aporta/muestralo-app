@@ -29,7 +29,6 @@ const dominio = arg("dominio") || `https://jeff-aporta.github.io/muestralo-${app
 // Molde + kit de componentes compartido.
 await mkdir(DESTINO, { recursive: true });
 await cp(join(APP_DIR, "molde"), DESTINO, { recursive: true });
-await cp(join(APP_DIR, "cdn"), join(DESTINO, "cdn"), { recursive: true });
 
 // Identidad horneada.
 const empresa = JSON.parse(await readFile(join(DESTINO, "empresa.json"), "utf8"));

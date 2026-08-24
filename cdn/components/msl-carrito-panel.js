@@ -1,15 +1,20 @@
 // Panel de carrito: lista ítems, cantidades, total y botón de congelar.
-// Propiedad: carrito {items, total}. Eventos: msl-cantidad, msl-quitar, msl-congelar.
+// Atributo JSON: carrito='{"items":[],"total":0}'
+// Eventos: msl-cantidad {id, cantidad}, msl-quitar {id}, msl-congelar.
 import { dinero } from "../msl-tema.js";
+import { esc, attrJson, setJsonAttr } from "../msl-core.js";
 
 export class MslCarritoPanel extends HTMLElement {
-  set carrito(c) {
-    this._c = c;
-    this.render();
-  }
+  static get observedAttributes() { return ["carrito"]; }
+
+  set carrito(c) { setJsonAttr(this, "carrito", c); }
+  get carrito() { return attrJson(this, "carrito"); }
+
+  attributeChangedCallback() { this.render(); }
+  connectedCallback() { this.render(); }
 
   render() {
-    const c = this._c;
+    const c = attrJson(this, "carrito");
     if (!c) return;
     if (!c.items.length) {
       this.innerHTML = `<div class="msl-vacio"><is-icon icon="mdi:cart-off"></is-icon><p>Carrito vacío</p></div>`;
@@ -20,8 +25,8 @@ export class MslCarritoPanel extends HTMLElement {
         ${c.items.map((i) => `
           <div class="msl-item" data-id="${i.id}">
             <div>
-              <strong>${i.nombre}</strong>
-              <small>${Object.entries(i.personalizacion || {}).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`).join(" · ")}</small>
+              <strong>${esc(i.nombre)}</strong>
+              <small>${esc(Object.entries(i.personalizacion || {}).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`).join(" · "))}</small>
             </div>
             <input type="number" min="1" value="${i.cantidad}" style="width:4em">
             <span>${dinero(i.subtotal)}</span>

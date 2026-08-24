@@ -1,5 +1,7 @@
 // Tarjeta de métrica: icono, valor y etiqueta. La usan admin/ y main/.
 // Atributos: icono, valor, etiqueta.
+import { esc } from "../msl-core.js";
+
 export class MslMetricaCard extends HTMLElement {
   static get observedAttributes() { return ["icono", "valor", "etiqueta"]; }
 
@@ -9,9 +11,9 @@ export class MslMetricaCard extends HTMLElement {
   render() {
     this.innerHTML = `
       <div class="msl-metrica">
-        <is-icon icon="${this.getAttribute("icono") || "mdi:chart-box"}"></is-icon>
-        <strong>${this.getAttribute("valor") ?? "—"}</strong>
-        <small>${this.getAttribute("etiqueta") || ""}</small>
+        <is-icon icon="${esc(this.getAttribute("icono") || "mdi:chart-box")}"></is-icon>
+        <strong>${esc(this.getAttribute("valor") ?? "—")}</strong>
+        <small>${esc(this.getAttribute("etiqueta") || "")}</small>
       </div>`;
   }
 }

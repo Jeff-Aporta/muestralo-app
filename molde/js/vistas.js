@@ -1,11 +1,11 @@
 // Boot del sitio generado: fija el CDN local, carga el kit y despacha la vista.
 // window.MSL lo horneó el build (app, api, dominio, whatsapp, moneda).
 
-window.MSL_CDN = new URL("../cdn", import.meta.url).href;
+window.MSL_CDN = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/muestralo-app@main/cdn";
 
-const { cargarKit } = await import("../cdn/msl-loader.js");
-const { MslCliente } = await import("../cdn/msl-cliente.js");
-const { dinero } = await import("../cdn/msl-tema.js");
+const { cargarKit } = await import("https://cdn.jsdelivr.net/gh/Jeff-Aporta/muestralo-app@main/cdn/msl-loader.js");
+const { MslCliente } = await import("https://cdn.jsdelivr.net/gh/Jeff-Aporta/muestralo-app@main/cdn/msl-cliente.js");
+const { dinero } = await import("https://cdn.jsdelivr.net/gh/Jeff-Aporta/muestralo-app@main/cdn/msl-tema.js");
 const R = await import("./runtime.js");
 
 await cargarKit();

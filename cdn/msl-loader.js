@@ -1,10 +1,9 @@
 // Cargador del kit Muéstralo: IS Web Components por CDN + componentes msl-*.
-// Una sola definición aquí; app/, admin/ y main/ llaman cargarKit() y ya.
-//
+// Una sola definición; los fronts y empresas la consumen por jsDelivr.
 // Publicado: https://cdn.jsdelivr.net/gh/Jeff-Aporta/muestralo-app@main/cdn/
-// Local (dev): cada front fija window.MSL_CDN a la ruta relativa del kit.
 
 const CDN_IS = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/is-webcomponents@main/dist/cdn";
+const CDN_MSL = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/muestralo-app@main/cdn";
 
 // Tags is-* que usa el ecosistema. Pedir fichero a fichero, no all.min.js.
 const TAGS_IS = [
@@ -18,9 +17,9 @@ const COMPONENTES = [
   "msl-pedido-card", "msl-metrica-card",
 ];
 
+// window.MSL_CDN lo fija el front solo en dev local; sin él, jsDelivr.
 export function baseCdn() {
-  // window.MSL_CDN lo fija el front; sin él, jsDelivr publicado.
-  return (window.MSL_CDN || "https://cdn.jsdelivr.net/gh/Jeff-Aporta/muestralo-app@main/cdn").replace(/\/+$/, "");
+  return (window.MSL_CDN || CDN_MSL).replace(/\/+$/, "");
 }
 
 export async function cargarKit(tagsExtra = []) {

@@ -1,27 +1,32 @@
-// Tarjeta de producto. Atributos: producto (propiedad JS).
+// Tarjeta de producto.
+// Atributo JSON: producto='{"id":1,"nombre":"…","precio":…,"moneda":"COP","stock":…,"imagenes":[],"variaciones":{}}'
 // Eventos: "msl-ver" (detalle), "msl-agregar" (añadir al carrito).
 import { dinero } from "../msl-tema.js";
+import { esc, attrJson, setJsonAttr } from "../msl-core.js";
 
 export class MslProductoCard extends HTMLElement {
-  set producto(p) {
-    this._p = p;
-    this.render();
-  }
-  get producto() { return this._p; }
+  static get observedAttributes() { return ["producto"]; }
+
+  // La propiedad JS es azúcar: escribe el atributo y una sola vía renderiza.
+  set producto(p) { setJsonAttr(this, "producto", p); }
+  get producto() { return attrJson(this, "producto"); }
+
+  attributeChangedCallback() { this.render(); }
+  connectedCallback() { this.render(); }
 
   render() {
-    const p = this._p;
-    if (!p) return;
+    const p = attrJson(this, "producto");
+    if (!p || !p.id) return;
     const img = (p.imagenes || [])[0];
     const vars = p.variaciones || {};
     this.innerHTML = `
       <div class="msl-card">
-        ${img ? `<img src="${img}" alt="${p.nombre}" loading="lazy">` : `<div class="msl-sin-img"><is-icon icon="mdi:image-off-outline"></is-icon></div>`}
+        ${img ? `<img src="${esc(img)}" alt="${esc(p.nombre)}" loading="lazy">` : `<div class="msl-sin-img"><is-icon icon="mdi:image-off-outline"></is-icon></div>`}
         <div class="msl-card-cuerpo">
-          <strong>${p.nombre}</strong>
+          <strong>${esc(p.nombre)}</strong>
           <span class="msl-precio">${dinero(p.precio, p.moneda)}</span>
           ${p.stock <= 0 ? `<is-badge>agotado</is-badge>` : ""}
-          ${Object.keys(vars).length ? `<small>${Object.keys(vars).join(" · ")}</small>` : ""}
+          ${Object.keys(vars).length ? `<small>${esc(Object.keys(vars).join(" · "))}</small>` : ""}
           <div class="msl-acciones">
             <is-button data-x="ver" variante="texto"><is-icon icon="mdi:eye"></is-icon> Ver</is-button>
             <is-button data-x="agregar" ${p.stock <= 0 ? "disabled" : ""}><is-icon icon="mdi:cart-plus"></is-icon> Agregar</is-button>

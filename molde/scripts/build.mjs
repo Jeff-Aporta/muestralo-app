@@ -323,6 +323,5 @@ for (const [ruta, contenido] of archivos) {
 await writeFile(join(DIST, "css", "tema.css"), temaCss());
 await cp(join(RAIZ, "css", "app.css"), join(DIST, "css", "app.css"));
 await cp(join(RAIZ, "js"), join(DIST, "js"), { recursive: true });
-await cp(join(RAIZ, "cdn"), join(DIST, "cdn"), { recursive: true });
 
 console.log(`Sitio generado en dist/: ${archivos.length + 1} archivos (${productos.length} productos) para "${NOMBRE}" [${EMP.app}].`);

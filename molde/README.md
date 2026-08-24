@@ -6,9 +6,10 @@ Sitio de catálogo generado con **Muéstralo**. Repo estático: el contenido se 
 
 - `empresa.json` — identidad del tenant: `app` (id en la API), `api`, `dominio` público final e `idioma`.
 - `css/`, `js/` — estilos y runtime del sitio (interactividad: sesión, carrito, pedidos).
-- `cdn/` — kit de componentes `msl-*` (copia; la fuente vive en `Jeff-Aporta/muestralo-app`).
 - `scripts/build.mjs` — generador: baja config y productos de la API y hornea `dist/`.
 - `.github/workflows/pages.yml` — publica a GitHub Pages en cada push; Cloudflare Pages opcional.
+
+El kit de componentes `msl-*` se consume por CDN (`muestralo-app` en jsDelivr): este repo NO lleva copia, por eso es liviano.
 
 ## Regenerar el sitio
 

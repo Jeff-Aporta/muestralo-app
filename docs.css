@@ -1,0 +1,58 @@
+/* Visor de documentación del kit msl-*. */
+:root {
+  --doc-primario: #6d28d9;
+  --doc-fondo: #fafafa;
+  --doc-borde: #e5e7eb;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; background: var(--doc-fondo); color: #1f2937; }
+
+#topbar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: .8rem;
+  padding: .7rem 1.2rem;
+  background: var(--doc-primario); color: #fff;
+}
+#topbar .sub { opacity: .8; font-size: .9rem; }
+#topbar .spacer { flex: 1; }
+#topbar a { color: #fff; }
+
+#cuerpo { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 52px); }
+
+#lateral {
+  border-right: 1px solid var(--doc-borde);
+  padding: 1rem .6rem;
+  background: #fff;
+}
+#lateral button {
+  display: block; width: 100%; text-align: left;
+  border: none; background: none; cursor: pointer;
+  padding: .5rem .7rem; border-radius: 8px;
+  font: inherit; color: inherit;
+}
+#lateral button[aria-pressed="true"] { background: #ede9fe; color: var(--doc-primario); font-weight: 600; }
+#lateral .grupo { margin: .8rem .7rem .3rem; font-size: .75rem; text-transform: uppercase; opacity: .5; }
+
+#contenido { padding: 1.6rem; max-width: 860px; }
+#contenido h1 { margin-top: 0; }
+
+.demo {
+  border: 1px solid var(--doc-borde);
+  border-radius: 12px;
+  padding: 1.2rem;
+  background: #fff;
+  margin: 1rem 0;
+  max-width: 22rem;
+}
+
+pre {
+  background: #0d1117; color: #c9d1d9;
+  padding: 1rem; border-radius: 10px;
+  overflow-x: auto; font-size: .85rem;
+}
+
+table { border-collapse: collapse; width: 100%; }
+td, th { border: 1px solid var(--doc-borde); padding: .45rem .7rem; text-align: left; font-size: .9rem; }
+th { background: #f3f4f6; }
+code { background: #f3f4f6; padding: .1rem .35rem; border-radius: 6px; }
