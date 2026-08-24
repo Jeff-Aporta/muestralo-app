@@ -47,9 +47,10 @@ export const MslCliente = {
   login: async (nickname, password) => {
     const r = await llamar("POST", "/api/usuarios/login", { nickname, password });
     MslCliente.token = r.token;
+    fijarPermisos(r.permisos);
     return r;
   },
-  logout() { MslCliente.token = null; },
+  logout() { MslCliente.token = null; fijarPermisos({}); },
 
   // Catálogo
   productos: (filtro = {}) => llamar("QUERY", "/api/productos", filtro),
@@ -82,4 +83,44 @@ export const MslCliente = {
   // Matriz
   tenants: () => llamar("GET", "/api/tenants"),
   crearTenant: (datos) => llamar("POST", "/api/tenants", datos),
+
+  // Archivos (R2). El navegador manda las variantes ya redimensionadas.
+  subirArchivo: (datos) => llamar("POST", "/api/archivos", datos),
+  archivos: (filtro = {}) => llamar("QUERY", "/api/archivos", filtro),
+  borrarArchivo: (id) => llamar("DELETE", `/api/archivos/${id}`),
+  // Ruta relativa de la API → absoluta para usar en <img src>.
+  urlArchivo: (ruta) => (/^https?:/.test(ruta ?? "") ? ruta : `${estado.base}${ruta ?? ""}`),
+
+  // Definiciones y permisos: el front no quema rutas, roles ni acciones.
+  definiciones: () => llamar("GET", "/api/definiciones"),
+  permisos: () => llamar("GET", "/api/permisos"),
 };
+
+// Permisos de la sesión en memoria: el front pinta según esto.
+let PERMISOS = {};
+
+// Guarda el mapa que devuelven login o /api/permisos.
+export function fijarPermisos(mapa) {
+  PERMISOS = mapa ?? {};
+  return PERMISOS;
+}
+
+// ¿La sesión puede ejecutar la accion (id de endpoint)? "*" pasa siempre.
+export function puede(accion) {
+  return !!(PERMISOS["*"] || PERMISOS[accion]);
+}
+
+// Alcance del permiso: true total, objeto acotado, false sin paso.
+export function alcance(accion) {
+  return PERMISOS["*"] ? true : (PERMISOS[accion] ?? false);
+}
+
+// Carga los permisos del token vigente (tras un refresh de página).
+export async function cargarPermisos() {
+  try {
+    const r = await MslCliente.permisos();
+    return fijarPermisos(r.permisos);
+  } catch {
+    return fijarPermisos({});
+  }
+}

@@ -14,7 +14,7 @@ const TAGS_IS = [
 // Componentes msl-* propios del ecosistema.
 const COMPONENTES = [
   "msl-producto-card", "msl-carrito-panel", "msl-auth-form",
-  "msl-pedido-card", "msl-metrica-card",
+  "msl-pedido-card", "msl-metrica-card", "msl-imagen-input",
 ];
 
 // window.MSL_CDN lo fija el front solo en dev local; sin él, jsDelivr.

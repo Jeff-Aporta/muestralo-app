@@ -282,6 +282,34 @@ function pDinamicas() {
   }));
 }
 
+// Panel de la empresa en su propio dominio: el admin llega por jsDelivr.
+// noindex y sin datos horneados: todo lo pide con la sesión del dueño.
+function pAdmin() {
+  const CDN_ADMIN = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/muestralo-admin@main";
+  escribir("admin/index.html", `<!doctype html>
+<html lang="${IDIOMA}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — ${esc(NOMBRE)}</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Jeff-Aporta/is-webcomponents@main/dist/cdn/is-base.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Jeff-Aporta/is-webcomponents@main/dist/cdn/palettes.min.css">
+<link rel="stylesheet" href="${CDN_ADMIN}/css/admin.css">
+</head>
+<body>
+<div id="raiz"></div>
+<script>
+  // El tenant y la API quedan fijados: el dueño solo pone sus credenciales.
+  localStorage.setItem("msl.app", ${JSON.stringify(EMP.app)});
+  localStorage.setItem("msl.api", ${JSON.stringify(EMP.api)});
+</script>
+<script type="module" src="${CDN_ADMIN}/js/admin.js"></script>
+</body>
+</html>
+`);
+}
+
 // ------------------------------------------------------------- índices
 
 function pSitemap() {
@@ -299,6 +327,7 @@ Allow: /
 Disallow: /carrito/
 Disallow: /pedidos/
 Disallow: /pedido/
+Disallow: /admin/
 
 Sitemap: ${DOMINIO}/sitemap.xml
 `);
@@ -311,6 +340,7 @@ pCatalogo();
 for (const p of productos) pProducto(p);
 pSedes();
 pDinamicas();
+pAdmin();
 pSitemap();
 pRobots();
 
