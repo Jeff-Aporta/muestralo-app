@@ -28,17 +28,17 @@ export class MslCarritoPanel extends HTMLElement {
               <strong>${esc(i.nombre)}</strong>
               <small>${esc(Object.entries(i.personalizacion || {}).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`).join(" · "))}</small>
             </div>
-            <input type="number" min="1" value="${i.cantidad}" style="width:4em">
+            <is-input type="number" min="1" value="${i.cantidad}" data-cant></is-input>
             <span>${dinero(i.subtotal)}</span>
             <is-button data-x="quitar" variant="text"><is-icon icon="mdi:delete"></is-icon></is-button>
           </div>`).join("")}
         <div class="msl-total"><strong>Total</strong><strong>${dinero(c.total)}</strong></div>
         <is-button data-x="congelar" class="msl-congelar"><is-icon icon="mdi:whatsapp"></is-icon> Hacer pedido</is-button>
       </div>`;
-    this.querySelectorAll(".msl-item input").forEach((inp) => {
-      inp.onchange = () => this.dispatchEvent(new CustomEvent("msl-cantidad", {
+    this.querySelectorAll("is-input[data-cant]").forEach((inp) => {
+      inp.addEventListener("change", () => this.dispatchEvent(new CustomEvent("msl-cantidad", {
         detail: { id: Number(inp.closest(".msl-item").dataset.id), cantidad: Number(inp.value) }, bubbles: true,
-      }));
+      })));
     });
     this.querySelectorAll('[data-x="quitar"]').forEach((b) => {
       b.onclick = () => this.dispatchEvent(new CustomEvent("msl-quitar", {

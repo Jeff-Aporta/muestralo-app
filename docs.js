@@ -1,16 +1,6 @@
 // Visor del kit msl-*: catálogo de componentes con demos vivas por atributos.
 // Corre sobre el propio repo: usa la copia local ./cdn (también en Pages).
 window.MSL_CDN = "./cdn";
-const { cargarKit } = await import("./cdn/msl-loader.js");
-const { MslCliente } = await import("./cdn/msl-cliente.js");
-const { aplicarTemaClaroOscuro, temaInicial, montarControlesTema } = await import("./cdn/msl-tema.js");
-
-await cargarKit();
-aplicarTemaClaroOscuro(temaInicial());
-montarControlesTema(document.getElementById("doc-tema"), []);
-
-// La demo de auth apunta al tenant demo real de la API.
-MslCliente.configurar({ app: "demo" });
 
 const PRODUCTO = {
   id: 1, nombre: "Taza de cerámica esmaltada", precio: 1890000, moneda: "COP",
@@ -156,21 +146,30 @@ let grupoActual = "";
 lateral.innerHTML = SECCIONES.map((s) => {
   const grupo = s.grupo !== grupoActual ? `<div class="grupo">${s.grupo}</div>` : "";
   grupoActual = s.grupo;
-  return `${grupo}<button data-sec="${s.id}">${s.titulo}</button>`;
+  return `${grupo}<is-button variant="text" data-sec="${s.id}">${s.titulo}</is-button>`;
 }).join("");
 
 function abrir(id) {
   const s = SECCIONES.find((x) => x.id === id) || SECCIONES[0];
   contenido.innerHTML = s.html;
   s.montar?.();
-  for (const b of lateral.querySelectorAll("button")) {
+  for (const b of lateral.querySelectorAll("[data-sec]")) {
     b.setAttribute("aria-pressed", String(b.dataset.sec === s.id));
   }
 }
 
 lateral.addEventListener("click", (e) => {
-  const b = e.target.closest("button[data-sec]");
+  const b = e.target.closest("[data-sec]");
   if (b) abrir(b.dataset.sec);
 });
 
 abrir("inicio");
+
+const { cargarKit } = await import("./cdn/msl-loader.js");
+const { MslCliente } = await import("./cdn/msl-cliente.js");
+const { aplicarTemaClaroOscuro, temaInicial, montarControlesTema } = await import("./cdn/msl-tema.js");
+await cargarKit();
+aplicarTemaClaroOscuro(temaInicial());
+montarControlesTema(document.getElementById("doc-tema"), []);
+MslCliente.configurar({ app: "demo" });
+abrir(document.querySelector("#lateral [data-sec][aria-pressed='true']")?.dataset.sec || "inicio");

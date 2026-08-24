@@ -19,8 +19,9 @@ export function baseIsCdn() {
 // Tags is-* que usa el ecosistema. Pedir fichero a fichero, no all.min.js.
 const TAGS_IS = [
   "is-icon", "is-button", "is-input", "is-card", "is-dialog",
-  "is-badge", "is-spinner", "is-toast", "is-select",
-  "is-check-icon-button",
+  "is-badge", "is-spinner", "is-toast", "is-select", "is-option", "is-checkbox",
+  "is-textarea",
+  "is-check-icon-button", "is-stat", "is-file-input", "is-tab-group",
   "is-theme-toggle", "is-palette-selector",
 ];
 
@@ -63,7 +64,5 @@ export async function cargarKit(tagsExtra = []) {
   await L.load(...new Set([...TAGS_IS, ...tagsExtra]));
   const base = baseCdn();
   cargarHojaKit(base);
-  for (const nombre of COMPONENTES) {
-    await import(`${base}/components/${nombre}.js`);
-  }
+  await Promise.all(COMPONENTES.map((nombre) => import(`${base}/components/${nombre}.js`)));
 }

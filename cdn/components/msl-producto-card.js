@@ -20,19 +20,19 @@ export class MslProductoCard extends HTMLElement {
     const img = (p.imagenes || [])[0];
     const vars = p.variaciones || {};
     this.innerHTML = `
-      <div class="msl-card">
-        ${img ? `<img src="${esc(img)}" alt="${esc(p.nombre)}" loading="lazy">` : `<div class="msl-sin-img"><is-icon icon="mdi:image-off-outline"></is-icon></div>`}
-        <div class="msl-card-cuerpo">
-          <strong>${esc(p.nombre)}</strong>
-          <span class="msl-precio">${dinero(p.precio, p.moneda)}</span>
-          ${p.stock <= 0 ? `<is-badge>agotado</is-badge>` : ""}
-          ${Object.keys(vars).length ? `<small>${esc(Object.keys(vars).join(" · "))}</small>` : ""}
-          <div class="msl-acciones">
-            <is-button data-x="ver" variant="text"><is-icon icon="mdi:eye"></is-icon> Ver</is-button>
-            <is-button data-x="agregar" ${p.stock <= 0 ? "disabled" : ""}><is-icon icon="mdi:cart-plus"></is-icon> Agregar</is-button>
-          </div>
+      <is-card>
+        ${img
+          ? `<img slot="media" src="${esc(img)}" alt="${esc(p.nombre)}" loading="lazy">`
+          : `<div slot="media" class="msl-sin-img"><is-icon icon="mdi:image-off-outline"></is-icon></div>`}
+        <strong slot="header">${esc(p.nombre)}</strong>
+        <span class="msl-precio">${dinero(p.precio, p.moneda)}</span>
+        ${p.stock <= 0 ? `<is-badge>agotado</is-badge>` : ""}
+        ${Object.keys(vars).length ? `<small>${esc(Object.keys(vars).join(" · "))}</small>` : ""}
+        <div slot="actions" class="msl-acciones">
+          <is-button data-x="ver" variant="text"><is-icon icon="mdi:eye"></is-icon> Ver</is-button>
+          <is-button data-x="agregar" ${p.stock <= 0 ? "disabled" : ""}><is-icon icon="mdi:cart-plus"></is-icon> Agregar</is-button>
         </div>
-      </div>`;
+      </is-card>`;
     this.querySelector('[data-x="ver"]').onclick = () =>
       this.dispatchEvent(new CustomEvent("msl-ver", { detail: p, bubbles: true }));
     this.querySelector('[data-x="agregar"]').onclick = () =>

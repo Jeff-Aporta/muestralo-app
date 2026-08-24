@@ -40,10 +40,8 @@ function precargarPaleta(paletas, valor) {
   return p;
 }
 
-/**
- * Arranca la identidad: tema claro/oscuro + paleta de marca del tenant.
- * Devuelve la config para que el sitio use nombre, meta y departamentos.
- */
+// Arranca identidad: claro/oscuro + paleta de marca del tenant.
+// Devuelve config: nombre, meta, departamentos, paletas.
 export async function aplicarTema(cfgPrevia = null) {
   aplicarTemaClaroOscuro(temaInicial());
   const cfg = cfgPrevia ?? (await MslCliente.config().catch(() => null));
@@ -61,10 +59,7 @@ export async function aplicarTema(cfgPrevia = null) {
   return cfg;
 }
 
-/**
- * Monta los controles nativos del kit en un contenedor.
- * No los envuelve en componentes propios: se usan tal cual.
- */
+// Monta controles nativos del kit. Sin envoltorio propio.
 export function montarControlesTema(contenedor, paletas = []) {
   if (!contenedor) return;
   contenedor.replaceChildren();

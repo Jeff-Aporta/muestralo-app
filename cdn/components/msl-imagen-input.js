@@ -69,18 +69,25 @@ export class MslImagenInput extends HTMLElement {
     const label = this.getAttribute("label") ?? "Imágenes";
     this.innerHTML = `
       <div class="msl-img-input">
-        <label class="msl-img-label">${esc(label)}
-          <input type="file" accept="image/*" ${this.hasAttribute("multiple") ? "multiple" : ""}>
-        </label>
+        <is-file-input label="${esc(label)}" accept="image/*"
+          ${this.hasAttribute("multiple") ? "multiple" : ""}></is-file-input>
         <p class="msl-img-estado" hidden></p>
         <div class="msl-img-galeria">
           ${this.valor.map((u, i) => `
             <figure><img src="${esc(u)}" alt="">
-              <button type="button" data-quitar="${i}" title="Quitar">×</button>
+              <is-button type="button" variant="text" data-quitar="${i}" title="Quitar">
+                <is-icon icon="mdi:close"></is-icon>
+              </is-button>
             </figure>`).join("")}
         </div>
       </div>`;
-    this.querySelector("input").onchange = (e) => this.subir([...e.target.files]);
+    const picker = this.querySelector("is-file-input");
+    const tomar = (e) => {
+      const files = e.target.files ?? e.detail?.files;
+      if (files?.length) this.subir([...files]);
+    };
+    picker.addEventListener("change", tomar);
+    picker.addEventListener("is-change", tomar);
     for (const b of this.querySelectorAll("[data-quitar]")) {
       b.onclick = () => {
         this._urls.splice(Number(b.dataset.quitar), 1);

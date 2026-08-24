@@ -1,4 +1,4 @@
-// Tarjeta de métrica: icono, valor y etiqueta. La usan admin/ y main/.
+// Cifra de dashboard: traduce atributos de dominio al <is-stat> del kit.
 // Atributos: icono, valor, etiqueta.
 import { esc } from "../msl-core.js";
 
@@ -9,12 +9,10 @@ export class MslMetricaCard extends HTMLElement {
   attributeChangedCallback() { this.render(); }
 
   render() {
-    this.innerHTML = `
-      <div class="msl-metrica">
-        <is-icon icon="${esc(this.getAttribute("icono") || "mdi:chart-box")}"></is-icon>
-        <strong>${esc(this.getAttribute("valor") ?? "—")}</strong>
-        <small>${esc(this.getAttribute("etiqueta") || "")}</small>
-      </div>`;
+    this.innerHTML = `<is-stat
+      icon="${esc(this.getAttribute("icono") || "mdi:chart-box")}"
+      value="${esc(this.getAttribute("valor") ?? "—")}"
+      label="${esc(this.getAttribute("etiqueta") || "")}"></is-stat>`;
   }
 }
 

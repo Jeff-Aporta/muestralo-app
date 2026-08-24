@@ -1,26 +1,22 @@
-// Caché de respuestas en IndexedDB: la vista pinta al instante con lo último
-// que se sabe y se rehace solo si el servidor trae algo distinto.
-//
-// La clave es (app + método + ruta + cuerpo + quién pregunta): dos filtros
-// distintos son dos entradas, y lo de un usuario no se le muestra a otro.
-//
-// Se guarda el JSON canónico (claves ordenadas). Comparar textos evita
-// colisiones de hash y hace la decisión de "¿cambió?" exacta.
+// Cache de respuestas en IndexedDB.
+// Pinta al instante lo ultimo conocido. Rehace solo si servidor difiere.
+// Clave: app + quien pregunta + metodo + ruta + cuerpo canonico.
+// Guarda JSON canonico. Comparar texto evita colisiones de hash.
 
 const DB = "muestralo";
 const ALMACEN = "respuestas";
 const VERSION = 1;
-// Entradas más viejas que esto se ignoran y se borran al pasar por ellas.
+// Entrada mas vieja que esto se ignora y se borra al leerla.
 const VIDA_MS = 7 * 24 * 60 * 60 * 1000;
 
-// Respaldo en memoria: modo privado, cuota llena o base corrupta no rompen
-// nada. Regla dura: el caché JAMAS bloquea el pintado. Si IndexedDB no
-// contesta a tiempo, se degrada a memoria para el resto de la sesión.
+// Respaldo en memoria: modo privado, cuota llena o base corrupta.
+// Regla dura: cache JAMAS bloquea pintado.
+// IndexedDB sin responder a tiempo degrada a memoria.
 const memoria = new Map();
 const LIMITE_MS = 1500;
 let promesaDb = null;
 
-// Promesa con tope de espera: si no contesta, se sigue sin caché persistente.
+// Promesa con tope. Sin respuesta, sigue sin cache persistente.
 function conTope(promesa, siTarda = null) {
   return Promise.race([
     promesa,
@@ -61,7 +57,7 @@ const promesa = (req) =>
     req.onerror = () => resolve(null);
   }));
 
-// Escritura: tampoco se espera indefinidamente a que confirme.
+// Escritura sin esperar confirmacion.
 function escribir(fn, clave, fila) {
   try {
     const db = fn;
@@ -76,7 +72,7 @@ function escribir(fn, clave, fila) {
   }
 }
 
-// JSON canónico: mismas claves en distinto orden dan el mismo texto.
+// JSON canonico: claves ordenadas dan texto estable.
 export function canonico(valor) {
   if (valor === null || typeof valor !== "object") return JSON.stringify(valor ?? null);
   if (Array.isArray(valor)) return `[${valor.map(canonico).join(",")}]`;
@@ -84,7 +80,7 @@ export function canonico(valor) {
   return `{${claves.map((k) => `${JSON.stringify(k)}:${canonico(valor[k])}`).join(",")}}`;
 }
 
-// Identidad de una consulta. `quien` aísla por usuario (o "anon").
+// Identidad de consulta. `quien` aisla por usuario.
 export function claveDe({ app, metodo, ruta, cuerpo, quien }) {
   return `${app}|${quien || "anon"}|${metodo}|${ruta}|${canonico(cuerpo ?? null)}`;
 }
@@ -119,7 +115,7 @@ export async function guardar(clave, datos) {
   if (previo && previo.texto === texto) return false;
   const fila = { clave, texto, guardadoEn: Date.now() };
   const db = await abrir();
-  // La copia en memoria siempre se mantiene: es el respaldo inmediato.
+  // Copia en memoria siempre: respaldo inmediato.
   memoria.set(clave, fila);
   escribir(db, undefined, fila);
   return true;
@@ -130,7 +126,7 @@ export async function borrar(clave) {
   escribir(await abrir(), clave, null);
 }
 
-// Invalida por prefijo o por trozo de ruta: tras mutar, lo tocado se relee.
+// Invalida por trozo de ruta. Tras mutar, lo tocado se relee.
 export async function invalidar(coincide) {
   const prueba = typeof coincide === "function" ? coincide : (c) => c.includes(coincide);
   for (const c of [...memoria.keys()]) if (prueba(c)) memoria.delete(c);
@@ -143,7 +139,7 @@ export async function invalidar(coincide) {
   } catch { /* la copia en memoria ya quedó limpia */ }
 }
 
-// Vacía todo: al cerrar sesión no queda rastro del usuario anterior.
+// Vacia todo. Al salir no queda rastro del usuario.
 export async function vaciar() {
   memoria.clear();
   escribir(await abrir(), undefined, null);

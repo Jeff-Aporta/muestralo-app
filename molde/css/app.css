@@ -1,12 +1,7 @@
-/* Sitio público de Muéstralo — hoja base del molde.
- *
- * Regla dura: aquí NO se escribe ni un color literal. Todo sale de los tokens
- * --is-* de is-webcomponents, que la paleta del tenant repinta por completo
- * (GET /tema/{app}/{paleta}.css). Cambiar de marca no toca este archivo.
- *
- * Forma: índice impreso. Cada departamento es una lista de renglones
- * "nombre · línea de puntos · precio", como una carta o un catálogo de papel.
- */
+/* Sitio publico Muéstralo. Hoja base del molde. */
+/* Regla dura: cero colores literales. Todo sale de tokens --is-*. */
+/* Paleta del tenant llega por GET /tema/{app}/{paleta}.css. */
+/* Forma: indice impreso. Renglon = nombre, guia de puntos, precio. */
 
 :root {
   --msl-medida: 68ch;              /* medida de lectura cómoda */
@@ -120,8 +115,7 @@ p { margin: 0 0 1em; max-width: var(--msl-medida); }
   gap: 0.4rem;
 }
 
-/* El selector de paleta es un control, no un botón de marca: se calma para
-   que el nombre del comercio siga siendo lo más fuerte de la cabecera. */
+/* Selector de paleta es control, no marca: baja peso visual. */
 is-palette-selector::part(trigger) {
   background: transparent;
   border: 1px solid var(--is-control-border);
@@ -173,9 +167,8 @@ main {
   text-wrap: balance;
 }
 
-/* Departamentos: renglones del índice mayor, no una fila de tarjetas.
-   Cada uno es una línea con su cifra a la derecha, como la tabla de un
-   catálogo impreso; la marca sólo entra al recorrerlos. */
+/* Departamentos: renglones del indice mayor, no tarjetas. */
+/* Linea con cifra a la derecha, como tabla de catalogo impreso. */
 .departamentos {
   list-style: none;
   margin: 0;
@@ -333,8 +326,7 @@ main {
 
 .producto-media img {
   width: 100%;
-  /* Cuadrada: es la proporción en que se producen las fotos del catálogo,
-     así no se recorta la pieza ni sobra fondo. */
+  /* Cuadrada: proporcion en que se generan las fotos. Sin recorte. */
   aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: var(--is-radius);
@@ -418,6 +410,7 @@ label.campo { display: grid; gap: 0.3rem; font-size: 0.9rem; color: var(--is-tex
 /* La cantidad es un número corto: no ocupa toda la fila. */
 label.campo:has(input[type="number"]) { inline-size: max-content; }
 label.campo input[type="number"] { inline-size: 7rem; }
+is-input.campo { inline-size: max-content; }
 input[type="number"],
 input[type="text"],
 input[type="search"],
@@ -455,7 +448,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   align-items: center;
   margin-block-end: 1.5rem;
 }
-.barra-busqueda input[type="search"] { flex: 1 1 16rem; }
+.barra-busqueda is-input { flex: 1 1 16rem; }
 
 .filtros { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .filtro {

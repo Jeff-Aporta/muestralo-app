@@ -321,7 +321,7 @@ function pCatalogo() {
     path: "/catalogo/", prefijo: "../", vista: "catalogo", jsonld,
     contenido: `<div class="indice-titulo"><h1>Catálogo</h1><span>${productos.length} referencias</span></div>
 <form class="barra-busqueda" id="buscador" role="search">
-  <input type="search" name="q" placeholder="Buscar en el catálogo…" aria-label="Buscar en el catálogo">
+  <is-input type="search" name="q" placeholder="Buscar en el catálogo…" aria-label="Buscar en el catálogo"></is-input>
   <div class="filtros" id="filtros-depto">
     <button type="button" class="filtro" data-depto="" aria-pressed="true">Todo</button>
     ${DEPARTAMENTOS.map((d) => `<button type="button" class="filtro" data-depto="${esc(d.id)}" aria-pressed="false">${esc(d.nombre)}</button>`).join("")}
@@ -408,9 +408,7 @@ function pProducto(p) {
     <form class="personalizar" id="personalizar">
       ${grupos}
       ${adicionales}
-      <label class="campo">Cantidad
-        <input name="cantidad" type="number" min="1" value="1" inputmode="numeric">
-      </label>
+      <is-input class="campo" name="cantidad" type="number" min="1" value="1" label="Cantidad"></is-input>
       <div class="total-linea"><span>Total</span><strong id="total-linea">${dinero(p.precio, p.moneda)}</strong></div>
       <is-button type="submit"${agotado ? " disabled" : ""}>
         <is-icon icon="mdi:basket-plus-outline"></is-icon> Agregar al carrito

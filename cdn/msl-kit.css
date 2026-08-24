@@ -1,11 +1,6 @@
-/* Capa de estilos de los componentes msl-* — fuente única del ecosistema.
- *
- * La carga el propio loader del kit (msl-loader.js), así que quien consuma
- * un componente por CDN recibe su estilo sin copiar nada. Los tres fronts y
- * los sitios de empresa comparten exactamente esta capa.
- *
- * Regla dura: solo tokens --is-*. La paleta del tenant repinta todo esto.
- */
+/* Estilos de componentes msl-*. Fuente unica del ecosistema. */
+/* Carga msl-loader.js: consumir por CDN ya trae estilo. */
+/* Regla dura: solo tokens --is-*. Paleta del tenant repinta todo. */
 
 msl-producto-card,
 msl-carrito-panel,

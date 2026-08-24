@@ -140,6 +140,92 @@ visible en consola**. El chequeo corre también en CI
 
 Vista previa con kit local: `node scripts/servir.mjs ../business/demo 8791`.
 
+## Post-mortem: errores cometidos y reglas que los prohíben
+
+Cada uno ocurrió de verdad en este repo. La regla es prohibitiva: si un agente
+la rompe, reintroduce el fallo.
+
+### 1. `node --check archivo.js` da falsos OK
+**Qué pasó.** Un `.js` con un salto de línea literal dentro de un string pasó
+la verificación y llegó a producción: el panel quedó **en blanco** con
+`Uncaught SyntaxError` en consola.
+**Causa raíz.** `node --check` sobre un `.js` lo parsea como **CommonJS**; el
+fichero es ESM y el error solo aparece al parsearlo como módulo.
+**Regla.** Verificar SIEMPRE con `node --input-type=module --check < archivo`,
+o con `scripts/verifica-js.mjs`. Nunca declarar "sintaxis OK" con `node --check`.
+
+### 2. El mismo salto de línea, ahora en HTML, **sin error visible**
+**Qué pasó.** Un `<script type="module">` con el mismo defecto hizo que la
+página **no ejecutara nada**, y la consola no mostró el error.
+**Causa raíz.** El verificador solo miraba `.js`/`.mjs`.
+**Regla.** El verificador cubre también los `<script type="module">` de los
+`.html`. Al editar comentarios o strings con herramientas de scripting,
+comprobar el fichero **después**: una barra-n mal escapada se convierte en un
+salto de línea real dentro del string y rompe el módulo entero. Este mismo
+error se cometió tres veces en la sesión, la última **escribiendo esta regla**.
+
+### 3. Atributo inventado en un componente del kit (`variante` en vez de `variant`)
+**Qué pasó.** 19 usos de `variante="texto"` en tres repos. El atributo no
+existe: `is-button` quedaba con su variante por defecto (`filled`), llenando de
+color botones que debían ser discretos.
+**Causa raíz.** Se dedujo la API por parecido en lugar de leerla.
+**Regla.** Antes de usar un atributo de un `is-*`, leer su `.md` en
+`is-webcomponents/src/components/**`. Valores válidos de `variant`: `filled`,
+`outlined`, `plain`, `ghost`, `soft`, `text`. `color` por defecto es `brand`.
+
+### 4. Un caché que bloqueaba el render
+**Qué pasó.** La primera versión de `msl-cache.js` solo resolvía en
+`onsuccess`/`onerror` de IndexedDB. En un contexto donde no dispara ninguno, el
+`await` quedaba colgado para siempre y **la vista no pintaba nunca**.
+**Causa raíz.** Se asumió que IndexedDB siempre responde.
+**Regla.** El caché **jamás** bloquea el pintado. Toda operación de IndexedDB
+lleva tope de tiempo y degrada a memoria (modo privado, cuota llena, base
+corrupta). Un caché caído debe ser indistinguible de no tener caché.
+
+### 5. Ruta de CDN relativa resuelta contra el módulo, no contra la página
+**Qué pasó.** `window.MSL_CDN = "./cdn"` producía `…/app/cdn/cdn/components/…`
+(404) y el kit no cargaba.
+**Causa raíz.** El `import()` vive dentro de `msl-loader.js`, así que un
+especificador relativo se resuelve contra la URL **del módulo**.
+**Regla.** `baseCdn()` absolutiza contra `document.baseURI`. Cualquier ruta que
+configure un consumidor se interpreta relativa a **la página**.
+
+### 6. jsDelivr sirvió durante horas un archivo ya corregido
+**Qué pasó.** Tras arreglar y publicar, el panel seguía roto.
+**Causa raíz.** jsDelivr cachea la resolución de `@main` hasta 12 h; purgar el
+fichero no basta por sí solo de inmediato.
+**Regla.** Tras publicar el kit, purgar
+(`https://purge.jsdelivr.net/gh/<repo>@main/<ruta>`) y verificar lo que se
+sirve. Para algo que deba llegar ya, servirlo desde GitHub Pages del repo que
+lo publica, como hace la página `/admin/` de cada empresa.
+
+### 7. Datos guardados con codificación rota
+**Qué pasó.** El tenant demo tenía `Camiseta B�sica` en base de datos, y el
+build generaba URLs como `/producto/1-camiseta-b-sica/`.
+**Causa raíz.** Se escribieron sin `charset=utf-8` en el `content-type`.
+**Regla.** Todo script que escriba en la API manda
+`content-type: application/json; charset=utf-8`. Ante un slug con guiones
+extraños, revisar el dato en origen antes de tocar el generador de slugs.
+
+## Gobernanza (aplica a los cuatro repos)
+
+- **Commits: autor único `Jeff-Aporta`.** Prohibidos los trailers de coautoría
+  (`Co-authored-by:`). El historial refleja autoría individual.
+- **Índice de propiedad:** `tests/_propiedad.json` (ignorado por git) lleva
+  `author` / `notTouched`. `author` vacío = todo el repo es de Jeff-Aporta.
+  Nunca modificar lo listado en `notTouched` sin preguntar primero.
+- **Comentarios caveman en español**, una línea, `//`. Prohibidos `/* */` y
+  `/** */` multilínea. En CSS los `/* */` también van cortos y sin relleno
+  (`/* margen safe-area iOS */`, no una frase explicativa). Regla del corpus
+  InSoft `comments-caveman-es`: obligatoria y universal, incluye JSDoc.
+- **Cero vestigios legacy:** nada de código comentado ni capas antiguas.
+- **Higiene:** lo temporal y de operación vive en carpetas ignoradas
+  (`scripts/`, `tests/`, `logs/`).
+- **Antes de decidir cómo se hace algo en InSoft, consultar el RAG**
+  (`python C:\ContaPyme\RAG\rag.py preguntar "..."`), incluido el dominio
+  `guideagents-jeffrey` para preferencias del desarrollador. Citar la ruta que
+  devuelva. "No está indexado" es respuesta válida; inventar no lo es.
+
 ## Ver también
 
 - `muestralo-api/LLM.md` — endpoints, permisos SEG, temas y archivos.
