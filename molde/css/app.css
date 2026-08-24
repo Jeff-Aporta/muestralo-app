@@ -189,12 +189,13 @@ main {
   grid-template-columns: auto minmax(6rem, auto) 1fr auto;
   align-items: baseline;
   gap: clamp(0.6rem, 2vw, 1.4rem);
-  padding: clamp(0.75rem, 1.8vw, 1.1rem) 0.4rem;
+  /* Padding fijo: el hover mueve con transform, que no provoca reflow. */
+  padding: clamp(0.75rem, 1.8vw, 1.1rem) 0.9rem;
   color: var(--is-text);
-  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), padding-inline 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .departamento:hover,
-.departamento:focus-visible { background: var(--is-brand-soft); padding-inline: 0.9rem; }
+.departamento:focus-visible { background: var(--is-brand-soft); transform: translateX(0.35rem); }
 .departamento is-icon { font-size: 1.15rem; color: var(--is-accent); align-self: center; }
 .departamento strong {
   font-family: var(--msl-display);
@@ -249,13 +250,13 @@ main {
   grid-template-columns: 1fr auto;
   align-items: baseline;
   gap: 0.75rem;
-  padding: clamp(0.7rem, 1.6vw, 1rem) 0.4rem;
-  transition: background 0.18s cubic-bezier(0.16, 1, 0.3, 1), padding-inline 0.18s;
+  padding: clamp(0.7rem, 1.6vw, 1rem) 0.8rem;
+  transition: background 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .renglon:hover,
 .renglon:focus-visible {
   background: var(--is-brand-soft);
-  padding-inline: 0.8rem;
+  transform: translateX(0.3rem);
 }
 
 .renglon-nombre {
@@ -332,7 +333,9 @@ main {
 
 .producto-media img {
   width: 100%;
-  aspect-ratio: 4 / 5;
+  /* Cuadrada: es la proporción en que se producen las fotos del catálogo,
+     así no se recorta la pieza ni sobra fondo. */
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: var(--is-radius);
   border: 1px solid var(--is-border-soft);
@@ -344,7 +347,7 @@ main {
 .marca-hueco {
   display: grid;
   place-items: center;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1 / 1;
   border-radius: var(--is-radius);
   background:
     radial-gradient(120% 90% at 20% 0%, var(--is-brand-soft), transparent 60%),
@@ -412,6 +415,9 @@ legend {
 .ficha small { color: inherit; opacity: 0.8; font-variant-numeric: tabular-nums; }
 
 label.campo { display: grid; gap: 0.3rem; font-size: 0.9rem; color: var(--is-text-soft); }
+/* La cantidad es un número corto: no ocupa toda la fila. */
+label.campo:has(input[type="number"]) { inline-size: max-content; }
+label.campo input[type="number"] { inline-size: 7rem; }
 input[type="number"],
 input[type="text"],
 input[type="search"],

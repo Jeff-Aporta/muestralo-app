@@ -82,7 +82,8 @@ function resumenOpciones(p) {
   const partes = [];
   for (const [clave, valor] of Object.entries(v)) {
     if (clave === "adicionales") {
-      if ((valor || []).length) partes.push(`${valor.length} adicionales`);
+      const n = (valor || []).length;
+      if (n) partes.push(`${n} ${n === 1 ? "adicional" : "adicionales"}`);
     } else if (Array.isArray(valor) && valor.length > 1) {
       partes.push(`${valor.length} ${clave}`);
     }
@@ -178,7 +179,7 @@ ${CONTRATO}
     <div id="controles-tema"></div>
     <a href="${prefijo}pedidos/" id="enlace-pedidos" hidden title="Mis pedidos"><is-icon icon="mdi:receipt-text-outline"></is-icon></a>
     <a href="${prefijo}carrito/" title="Carrito"><is-icon icon="mdi:basket-outline"></is-icon><span id="carrito-n"></span></a>
-    <is-button id="btn-sesion" variant="text" title="Sesión"><is-icon icon="mdi:account-outline"></is-icon></is-button>
+    <is-button id="btn-sesion" variant="text" color="neutral" title="Iniciar sesión"><is-icon icon="mdi:account-outline"></is-icon></is-button>
   </div>
 </header>
 <main id="vista">
