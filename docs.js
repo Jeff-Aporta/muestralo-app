@@ -3,8 +3,11 @@
 window.MSL_CDN = "./cdn";
 const { cargarKit } = await import("./cdn/msl-loader.js");
 const { MslCliente } = await import("./cdn/msl-cliente.js");
+const { aplicarTemaClaroOscuro, temaInicial, montarControlesTema } = await import("./cdn/msl-tema.js");
 
 await cargarKit();
+aplicarTemaClaroOscuro(temaInicial());
+montarControlesTema(document.getElementById("doc-tema"), []);
 
 // La demo de auth apunta al tenant demo real de la API.
 MslCliente.configurar({ app: "demo" });
@@ -138,6 +141,9 @@ await cargarKit();  // registra is-* (kit base) y todos los msl-*</pre>
       </table>
       <p><strong>Regla dura:</strong> ningún CSS del ecosistema escribe un color
       literal. Todo sale de tokens <code>--is-*</code>.</p>
+      <p>Los cuatro fronts arrancan el tema en <code>msl-boot.js</code> (sin destello)
+      y montan <code>&lt;is-theme-toggle&gt;</code> + <code>&lt;is-palette-selector&gt;</code>.
+      Atajos: <code>?tema=dark|light</code> y <code>?paleta=contapyme</code>.</p>
       <pre>import { montarControlesTema } from ".../cdn/msl-tema.js";
 montarControlesTema(document.getElementById("controles"), cfg.paletas);</pre>`,
   },

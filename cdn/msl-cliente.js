@@ -1,8 +1,31 @@
 // Cliente API de Muéstralo: único punto que habla con el Worker.
 // Lo consumen app/, admin/ y main/. No duplicar fetch en los fronts.
+//
+// Lecturas con caché: `vivo()` pinta al instante con la última respuesta
+// conocida (IndexedDB) y vuelve a pintar SOLO si el servidor trae algo
+// distinto. Las mutaciones invalidan lo que tocaron.
+import * as cache from "./msl-cache.js";
 
 const LS_TOKEN = "msl.token";
 const LS_APP = "msl.app";
+const LS_NICK = "msl.nickname";
+
+// Métodos de lectura: son los únicos que se cachean.
+const LECTURA = new Set(["GET", "QUERY"]);
+
+// Qué invalida cada mutación. La clave lleva la ruta, así que basta el trozo.
+// Un pedido congelado toca carrito y pedidos; un pago toca pagos y pedidos.
+const INVALIDA = [
+  [/^\/api\/productos/, ["/api/productos"]],
+  [/^\/api\/carrito/, ["/api/carrito"]],
+  [/^\/api\/pedidos\/congelar/, ["/api/carrito", "/api/pedidos", "/api/metricas"]],
+  [/^\/api\/pedidos/, ["/api/pedidos", "/api/metricas"]],
+  [/^\/api\/pagos/, ["/api/pagos", "/api/pedidos", "/api/metricas"]],
+  [/^\/api\/archivos/, ["/api/archivos"]],
+  [/^\/api\/config/, ["/api/config"]],
+  [/^\/api\/tenants/, ["/api/tenants"]],
+  [/^\/api\/seg/, ["/api/seg", "/api/permisos"]],
+];
 
 // Base de la API: configúrala con MslCliente.configurar({base, app}).
 const estado = {
@@ -17,7 +40,7 @@ function cabeceras() {
   return h;
 }
 
-async function llamar(metodo, ruta, body) {
+async function pedir(metodo, ruta, body) {
   const r = await fetch(`${estado.base}${ruta}`, {
     method: metodo,
     headers: cabeceras(),
@@ -26,6 +49,58 @@ async function llamar(metodo, ruta, body) {
   const datos = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(datos.error || `HTTP ${r.status}`);
   return datos;
+}
+
+// Clave de caché de esta consulta, atada al tenant y a quién pregunta.
+const claveDe = (metodo, ruta, body) => cache.claveDe({
+  app: estado.app, metodo, ruta, cuerpo: body,
+  quien: localStorage.getItem(LS_NICK) || "anon",
+});
+
+// Tras una mutación, se olvidan las lecturas que dejó desactualizadas.
+async function invalidarPor(ruta) {
+  for (const [patron, trozos] of INVALIDA) {
+    if (!patron.test(ruta)) continue;
+    for (const t of trozos) await cache.invalidar(t);
+    return;
+  }
+}
+
+async function llamar(metodo, ruta, body) {
+  const datos = await pedir(metodo, ruta, body);
+  if (LECTURA.has(metodo)) await cache.guardar(claveDe(metodo, ruta, body), datos);
+  else await invalidarPor(ruta);
+  return datos;
+}
+
+/**
+ * Lectura con caché: pinta ya y revalida.
+ *
+ * `pintar(datos, {origen, cambio})` se llama una vez con lo guardado
+ * (origen "cache") y otra solo si el servidor devolvió algo distinto
+ * (origen "red"). Si la respuesta es idéntica, NO se vuelve a llamar: el
+ * componente no se rehace por gusto.
+ *
+ * Devuelve los datos frescos. Si la red falla pero había caché, no lanza:
+ * resuelve con lo cacheado y avisa por `onError`.
+ */
+export async function vivo(metodo, ruta, body, pintar, { onError } = {}) {
+  if (!LECTURA.has(metodo)) throw new Error(`vivo() solo admite ${[...LECTURA].join(" o ")}`);
+  const clave = claveDe(metodo, ruta, body);
+  const guardado = await cache.leer(clave).catch(() => null);
+  if (guardado) pintar(guardado.datos, { origen: "cache", cambio: false });
+
+  try {
+    const frescos = await pedir(metodo, ruta, body);
+    const cambio = await cache.guardar(clave, frescos);
+    // Sin caché previa hay que pintar igual; con ella, solo si cambió.
+    if (cambio || !guardado) pintar(frescos, { origen: "red", cambio });
+    return frescos;
+  } catch (e) {
+    if (!guardado) throw e;
+    onError?.(e);
+    return guardado.datos;
+  }
 }
 
 export const MslCliente = {
@@ -47,10 +122,18 @@ export const MslCliente = {
   login: async (nickname, password) => {
     const r = await llamar("POST", "/api/usuarios/login", { nickname, password });
     MslCliente.token = r.token;
+    // El nickname entra en la clave de caché: nadie ve datos de otra sesión.
+    localStorage.setItem(LS_NICK, r.nickname);
     fijarPermisos(r.permisos);
     return r;
   },
-  logout() { MslCliente.token = null; fijarPermisos({}); },
+  logout() {
+    MslCliente.token = null;
+    localStorage.removeItem(LS_NICK);
+    fijarPermisos({});
+    // Al salir no queda rastro del usuario anterior en el dispositivo.
+    cache.vaciar();
+  },
 
   // Catálogo
   productos: (filtro = {}) => llamar("QUERY", "/api/productos", filtro),
@@ -94,7 +177,36 @@ export const MslCliente = {
   // Definiciones y permisos: el front no quema rutas, roles ni acciones.
   definiciones: () => llamar("GET", "/api/definiciones"),
   permisos: () => llamar("GET", "/api/permisos"),
+
+  // Lectura con caché. Ver `vivo()`: pinta ya y solo rehace si algo cambió.
+  vivo,
+  // Escotillas de caché para casos puntuales (tras un import masivo, etc.).
+  olvidar: (trozo) => cache.invalidar(trozo),
+  vaciarCache: () => cache.vaciar(),
 };
+
+// Variante con caché de cada lectura, sin que el front conozca la ruta:
+//   MslCliente.productos(filtro)              → red, promesa (como siempre)
+//   MslCliente.productos.vivo(filtro, pintar) → caché ya + red si cambió
+const LECTURAS = {
+  config: ["GET", "/api/config"],
+  productos: ["QUERY", "/api/productos"],
+  carrito: ["GET", "/api/carrito"],
+  pedidos: ["QUERY", "/api/pedidos"],
+  pagos: ["QUERY", "/api/pagos"],
+  archivos: ["QUERY", "/api/archivos"],
+  metricas: ["QUERY", "/api/metricas"],
+  tenants: ["GET", "/api/tenants"],
+  permisos: ["GET", "/api/permisos"],
+  definiciones: ["GET", "/api/definiciones"],
+};
+
+for (const [nombre, [verbo, ruta]] of Object.entries(LECTURAS)) {
+  // El cuerpo por defecto imita al del método normal: misma clave de caché.
+  const pordefecto = verbo === "QUERY" ? {} : undefined;
+  MslCliente[nombre].vivo = (cuerpo, pintar, opts) =>
+    vivo(verbo, ruta, cuerpo ?? pordefecto, pintar, opts);
+}
 
 // Permisos de la sesión en memoria: el front pinta según esto.
 let PERMISOS = {};

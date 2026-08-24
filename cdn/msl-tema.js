@@ -67,19 +67,27 @@ export async function aplicarTema(cfgPrevia = null) {
  */
 export function montarControlesTema(contenedor, paletas = []) {
   if (!contenedor) return;
+  contenedor.replaceChildren();
+  contenedor.classList.add("msl-controles-tema");
+
+  const selector = document.createElement("is-palette-selector");
+  selector.setAttribute("aria-label", "Elegir paleta");
+  selector.setAttribute("storage-key", LS_PALETA);
+  if (paletas.length) selector.setAttribute("palettes", JSON.stringify(paletas));
+  const paleta = localStorage.getItem(LS_PALETA);
+  if (paleta) selector.setAttribute("value", paleta);
+  selector.addEventListener("is-palette-change", (e) => {
+    const v = e.detail?.value;
+    if (v) document.documentElement.dataset.palette = v;
+  });
+
   const toggle = document.createElement("is-theme-toggle");
   if (document.documentElement.dataset.theme === "dark") toggle.setAttribute("dark", "");
   toggle.addEventListener("is-theme-change", (e) => {
     aplicarTemaClaroOscuro(e.detail.theme);
   });
 
-  if (paletas.length) {
-    const selector = document.createElement("is-palette-selector");
-    selector.setAttribute("aria-label", "Elegir identidad de marca");
-    selector.setAttribute("palettes", JSON.stringify(paletas));
-    contenedor.append(selector);
-  }
-  contenedor.append(toggle);
+  contenedor.append(selector, toggle);
 }
 
 // Formatea centavos a moneda legible.

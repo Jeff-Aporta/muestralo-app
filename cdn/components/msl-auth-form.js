@@ -12,22 +12,20 @@ export class MslAuthForm extends HTMLElement {
     this.innerHTML = `
       <form class="msl-auth">
         ${titulo ? `<h3>${esc(titulo)}</h3>` : ""}
-        <label>Nickname <small>(email o móvil)</small>
-          <input name="nickname" required autocomplete="username">
-        </label>
-        <label>Contraseña
-          <input name="password" type="password" required minlength="4" autocomplete="current-password">
-        </label>
+        <is-input name="nickname" label="Nickname" hint="email o móvil" required autocomplete="username"></is-input>
+        <is-input name="password" type="password" password-toggle label="Contraseña" required minlength="4" autocomplete="current-password"></is-input>
         <is-button type="submit" data-x="entrar"><is-icon icon="mdi:login"></is-icon> Entrar</is-button>
         ${conRegistro ? `<is-button type="button" data-x="registro" variant="text">Crear cuenta</is-button>` : ""}
         <p class="msl-error" hidden></p>
       </form>`;
     const form = this.querySelector("form");
     const errorEl = this.querySelector(".msl-error");
+    const leer = (name) => this.querySelector(`is-input[name="${name}"]`)?.value
+      ?? form.elements[name]?.value ?? "";
     const enviar = async (esRegistro) => {
       errorEl.hidden = true;
-      const nickname = form.nickname.value.trim();
-      const password = form.password.value;
+      const nickname = String(leer("nickname")).trim();
+      const password = String(leer("password"));
       try {
         if (esRegistro) await MslCliente.registro(nickname, password);
         const sesion = await MslCliente.login(nickname, password);

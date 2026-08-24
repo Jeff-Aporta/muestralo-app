@@ -14,6 +14,12 @@ msl-auth-form,
 msl-metrica-card,
 msl-imagen-input { display: block; }
 
+.msl-controles-tema {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 /* --------------------------------------------------------------- tarjeta */
 
 .msl-card {

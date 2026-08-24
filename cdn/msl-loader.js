@@ -5,11 +5,22 @@
 const CDN_IS = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/is-webcomponents@main/dist/cdn";
 const CDN_MSL = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/muestralo-app@main/cdn";
 
+function esLocal() {
+  const h = location.hostname;
+  return h === "127.0.0.1" || h === "localhost";
+}
+
+export function baseIsCdn() {
+  if (window.IS_CDN) return String(window.IS_CDN).replace(/\/+$/, "");
+  if (esLocal()) return `${location.origin}/apps/is-webcomponents/dist/cdn`;
+  return CDN_IS;
+}
+
 // Tags is-* que usa el ecosistema. Pedir fichero a fichero, no all.min.js.
 const TAGS_IS = [
   "is-icon", "is-button", "is-input", "is-card", "is-dialog",
-  "is-tab-group", "is-badge", "is-spinner", "is-toast", "is-select",
-  // Temización nativa del kit: no se reimplementa nada de esto.
+  "is-badge", "is-spinner", "is-toast", "is-select",
+  "is-check-icon-button",
   "is-theme-toggle", "is-palette-selector",
 ];
 
@@ -38,15 +49,17 @@ function cargarHojaKit(base) {
 }
 
 export async function cargarKit(tagsExtra = []) {
-  // Fallback local: /is-webcomponents:local si jsDelivr no responde.
-  let loaderUrl = `${CDN_IS}/loader.min.js`;
-  try {
-    const r = await fetch(loaderUrl, { method: "HEAD" });
-    if (!r.ok) throw new Error("cdn");
-  } catch {
-    loaderUrl = "/is-webcomponents:local/loader.min.js";
+  const candidatos = [...new Set([baseIsCdn(), CDN_IS])];
+  let L;
+  let ultimo;
+  for (const isCdn of candidatos) {
+    try {
+      ({ ISWebComponentsLoader: L } = await import(`${isCdn}/loader.min.js`));
+      window.IS_CDN = isCdn;
+      break;
+    } catch (e) { ultimo = e; }
   }
-  const { ISWebComponentsLoader: L } = await import(loaderUrl);
+  if (!L) throw ultimo;
   await L.load(...new Set([...TAGS_IS, ...tagsExtra]));
   const base = baseCdn();
   cargarHojaKit(base);

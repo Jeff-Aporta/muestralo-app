@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><title>Prueba de caché</title></head>
+<body>
+<pre id="out">probando...</pre>
+<script type="module">
+// Prueba del contrato de caché: qué se pinta y cuántas veces.
+const out = document.getElementById("out");
+const paso = (t) => { out.textContent += "\n" + t; document.title = t; };
+addEventListener("unhandledrejection", (e) => paso("RECHAZO: " + e.reason));
+
+const { MslCliente } = await import("./msl-cliente.js");
+const cache = await import("./msl-cache.js");
+MslCliente.configurar({ base: "https://muestralo-api.jeffaporta.workers.dev", app: "demo" });
+await cache.vaciar();
+paso("cache vaciada");
+
+const filtro = { limit: 5, sort: "id" };
+
+// 1a vez: sin cache, un solo pintado y viene de red.
+const a = [];
+await MslCliente.productos.vivo(filtro, (d, m) => a.push(m.origen));
+paso("1a=" + JSON.stringify(a));
+
+// 2a vez: hay cache y el servidor devuelve lo mismo -> solo pinta de cache.
+const b = [];
+await MslCliente.productos.vivo(filtro, (d, m) => b.push(m.origen));
+paso("2a=" + JSON.stringify(b));
+
+// Otro filtro es otra entrada: no reusa la anterior.
+const c = [];
+await MslCliente.productos.vivo({ limit: 2, sort: "id" }, (d, m) => c.push(m.origen));
+paso("otroFiltro=" + JSON.stringify(c));
+
+// Mismas claves en otro orden -> misma entrada de cache.
+const d2 = [];
+await MslCliente.productos.vivo({ sort: "id", limit: 5 }, (d, m) => d2.push(m.origen));
+paso("ordenClaves=" + JSON.stringify(d2));
+
+// Si lo guardado difiere de lo que trae la red, se repinta.
+const clave = cache.claveDe({
+  app: "demo", metodo: "QUERY", ruta: "/api/productos", cuerpo: filtro, quien: "anon",
+});
+await cache.guardar(clave, { results: [], pagina: { total: 0 } });
+const e2 = [];
+await MslCliente.productos.vivo(filtro, (d, m) => e2.push(m.origen));
+paso("trasCambio=" + JSON.stringify(e2));
+
+paso("FIN");
+</script>
+</body>
+</html>
