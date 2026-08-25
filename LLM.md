@@ -22,19 +22,24 @@ Nada de npm, bundlers, React ni Svelte. Iconos **solo** con
 
 | Archivo | Qué expone |
 |---|---|
-| `msl-loader.js` | `cargarKit(tagsExtra)`: carga los tags `is-*` del CDN, la hoja `msl-kit.css` y los componentes `msl-*`. `baseCdn()` respeta `window.MSL_CDN` para desarrollo local. |
+| `msl-loader.js` | `cargarKit(tagsExtra)`: carga `is-*`, `msl-kit.css` y `msl-*`. Al terminar instala captura global de errores (`web-muestralo` → is-errores). `baseCdn()` respeta `window.MSL_CDN`. |
 | `msl-cliente.js` | `MslCliente`: **único** punto que habla con la API. Además `puede(accion)`, `alcance(accion)`, `cargarPermisos()`, `fijarPermisos()` y la lectura con caché `vivo()`. |
-| `msl-cache.js` | Caché de respuestas en IndexedDB: `claveDe`, `leer`, `guardar`, `invalidar`, `vaciar`, `canonico`. |
+| `msl-cache.js` | Fachada IndexedDB sobre kit `helpers/response-cache` (`claveDe`, `leer`, `guardar`, …). |
 | `msl-boot.js` | Arranque de tema antes del primer pintado. **Única** definición: el build lo inserta en línea, no lo reescribe. |
 | `msl-tema.js` | `aplicarTema()`, `montarControlesTema()`, `temaInicial()`, `dinero()`. |
 | `msl-core.js` | `esc()`, `attrJson()`, `setJsonAttr()`: convención de parámetros por atributos. |
 | `msl-kit.css` | Estilos de todos los componentes `msl-*`. Solo tokens `--is-*`. |
 | `components/msl-producto-card.js` | Tarjeta de producto. Eventos `msl-ver`, `msl-agregar`. |
+| `components/msl-vitrina-hero.js` | Portada de tienda (HTML horneado; el tag nombra el bloque). |
+| `components/msl-vitrina-producto.js` | Pieza en mosaico de home (`is-card` + foto). |
+| `components/msl-vitrina-coleccion.js` | Baldosa de departamento con foto. |
+| `components/msl-vitrina-banda.js` | Franja editorial (pedido WhatsApp, sedes). |
 | `components/msl-carrito-panel.js` | Carrito con totales. Eventos `msl-cantidad`, `msl-quitar`, `msl-congelar`. |
 | `components/msl-pedido-card.js` | Pedido congelado: código base36, ítems, total, botón WhatsApp. |
-| `components/msl-auth-form.js` | Acceso por nickname (email o móvil). Evento `msl-login`. |
+| `components/msl-auth-form.js` | Acceso por nickname (email, móvil o usuario). Evento `msl-login`. |
 | `components/msl-metrica-card.js` | Cifra con icono y etiqueta. La usan admin y main. |
-| `components/msl-imagen-input.js` | Sube imágenes redimensionando en canvas (2048/1024/320, q 0.75) y las manda a R2. Evento `msl-subida`. |
+| `msl-juego.js` | Motor: ancla de precio, ventanas, racha, sorteo, cupones. Importable por CDN. |
+| `components/msl-juego.js` | Tags `msl-juego-*` (gamificación). Un fichero, 15 elementos. |
 
 Publicado en `https://cdn.jsdelivr.net/gh/Jeff-Aporta/muestralo-app@main/cdn/`.
 **Ojo:** jsDelivr cachea la resolución de `@main` hasta 12 h. Para un arreglo
@@ -48,6 +53,49 @@ publica (así lo hace la página `/admin/` de cada empresa).
 2. Sus estilos van en `cdn/msl-kit.css`, **nunca** en el CSS de un front.
 3. Registrarlo en la lista `COMPONENTES` de `msl-loader.js`.
 4. Documentarlo en la tabla de arriba.
+
+## Gamificación (`msl-juego-*`)
+
+Un motor (`cdn/msl-juego.js`) y un fichero de tags (`cdn/components/msl-juego.js`).
+Las tiendas no copian la lógica: `await cargarKit("gamificacion")` o el perfil
+completo. Persistencia en `localStorage` (`msl.juego.*`). Precios en **centavos**.
+
+```js
+import { precioAncla, ventanaPromo } from "…/cdn/msl-juego.js";
+precioAncla({ centavos: 1940000, modo: "simulada", inflar: 1.55 });
+// lista inflada, oferta = precio real
+precioAncla({ centavos: 1940000, modo: "real", descuento: 30 });
+ventanaPromo({ ciclo: "mes-semana-1" }); // semana 1 de cada mes
+```
+
+| Tag | Capa | Atributos |
+|---|---|---|
+| `msl-juego-precio` | Ancla | `centavos` `modo=simulada\|real\|ninguna` `inflar` `descuento` `moneda` |
+| `msl-juego-cuenta` | Urgencia | `ciclo` `hasta` ISO `durante` (`90s`/`2h`) `clave` `rotulo` |
+| `msl-juego-escasez` | Urgencia | `sku` `quedan` `min` `max` `tipo=simulado\|real` · `msl-juego-mirada` |
+| `msl-juego-barra` | Urgencia | `actual` `umbral` `premio` `moneda` |
+| `msl-juego-asintota` | Juegos | `puntos` `premio` |
+| `msl-juego-mision` | Juegos | JSON `misiones` · evento `msl-juego-mision` |
+| `msl-juego-suerte` | Juegos | `tipo=ruleta\|cofre\|rasca` JSON `premios` · `msl-juego-premio` |
+| `msl-juego-feed` | Descubrimiento | JSON `items` |
+| `msl-juego-paquete` | Descubrimiento | JSON `items` · `msl-juego-sumar` |
+| `msl-juego-cupon` | Ancla | `cuenta` |
+| `msl-juego-referido` | Viralidad | `codigo` · `msl-juego-ref` |
+| `msl-juego-grupo` | Viralidad | `actual` `meta` |
+| `msl-juego-alerta` | Retención | `abierta` `titulo` `cuerpo` |
+| `msl-juego-salida` | Retención | intercepta el cursor hacia la pestaña (1 vez/día) |
+| `msl-juego-ficha` | Composición | JSON `producto` + `modo` + `ciclo` + `tipo` (pasa a escasez) |
+
+Color: `color` CSS del host (token `--is-*` según el tipo de tag). Hijos
+`currentColor`. `variant` en `is-button` es forma (`text`/`ghost`), no tinte.
+Tamaño: `font-size` en el host; interiores en `em`.
+
+`msl-juego-escasez tipo="simulado"` (defecto): gente/stock por hash sku+día.
+`tipo="real"`: WebSocket `GET /api/miradas/{app}/{sku}`; cada pestaña abierta
+en ese sku cuenta y avisa al resto (`{n}`, evento `msl-juego-mirada`).
+
+Catálogo vivo en GitHub Pages del kit (`index.html` / `docs.js`), hashes
+`#gamificacion`, `#msl-juego-precio`, etc.
 
 ## Caché de lecturas (IndexedDB)
 
@@ -79,6 +127,18 @@ await MslCliente.productos.vivo(filtro, (datos, { origen, cambio }) => {
 Lecturas con variante `.vivo`: `config`, `productos`, `carrito`, `pedidos`,
 `pagos`, `archivos`, `metricas`, `tenants`, `permisos`, `definiciones`.
 
+## Recomendaciones (opt-in)
+
+La API rastrea sola las vistas (`GET` producto), carrito y pedido. El front
+**no tiene** que pintar nada: si quiere, pide `MslCliente.recomendaciones()` y
+mete el `results` en un `msl-carrusel` (o ignóralo y deja productos fijos).
+Tiempo en ficha: `MslCliente.permanencia(id, ms)` al salir de la página.
+El dueño puede fijar ids en `config.meta.recomendaciones.fijos` y el QUERY
+devuelve esos, sin embeddings.
+
+```js
+const { results } = await MslCliente.recomendaciones({ limite: 10 });
+```
 ## Temización camaleónica
 
 No se inventa nada: se usa el sistema de is-webcomponents.
@@ -86,21 +146,22 @@ No se inventa nada: se usa el sistema de is-webcomponents.
 - `<html data-theme="dark|light">` + clases `theme-dark` / `theme-light`
   → `<is-theme-toggle>`.
 - `<html data-palette="X">` → `<is-palette-selector>`, alimentado con las
-  paletas del tenant (`GET /api/config` → `paletas`), cada una con su `css`
-  (`GET /tema/{app}/{paleta}.css`) que el selector inyecta bajo demanda.
-- El CSS de cada paleta lo **genera la API** desde el color de marca; nadie
-  escribe hojas de color por cliente.
+  paletas del tenant (`GET /api/config` → `paletas`). El CSS de paleta es
+  **local de cada app** (hoja horneada o `css/app.css`). La API **ya no**
+  sirve `GET /tema/{app}/{paleta}.css`: no reintroducir esa ruta.
 - El molde arranca el tema en un script del `<head>` para que no haya destello.
 
-**Regla dura para cualquier CSS del ecosistema:** ni un color literal. Todo
-sale de tokens `--is-*`. Si un componente necesita un color nuevo, se toma del
-token que corresponda, no se inventa un hex.
+**Regla dura para el molde y los paneles:** ni un color literal. Todo sale de
+tokens `--is-*`. **Excepción:** un clon visual (Don Jacobo) escribe hex en su
+`css/app.css` para copiar el original; no mezclar ese CSS con el molde.
 
 ## El molde (`molde/`)
 
 Sitio público de una empresa, MPA estático horneado. Forma: **índice impreso**
 —cada departamento es una lista de renglones «nombre · guía de puntos · precio»—
-en vez de una rejilla de tarjetas.
+en vez de una rejilla de tarjetas. El pie lleva crédito Muéstralo como
+watermark (`.pie-credito` en `msl-kit.css`: ~0.6rem, opacity baja); no es
+segunda marca.
 
 | Archivo | Qué hace |
 |---|---|
@@ -127,6 +188,19 @@ node scripts/nueva-empresa.mjs --app mitienda --nombre "Mi Tienda"
 
 El kit **no** se copia al repo de la empresa: llega por CDN. Solo hay que
 re-sincronizar `molde/` cuando cambian el build, el runtime o el workflow.
+
+### Clon Don Jacobo (excepción al índice impreso)
+
+`business/don-jacobo-clon/` no usa la forma “índice impreso” ni paletas de API.
+Original: https://donjacobo.com.co/
+
+**Arquitectura (2026-08-25):** árbol `src/` al estilo isc-swagger; web components
+propios `dj-*` publicados en `dist/cdn/` (`all.min.js` + módulos hermanos).
+**No** copia el kit `msl-*` de este `app/cdn` al dist del clon. Consume `is-*`
+por loader. JSON en `src/json/` con clave **`brand`** (no `marca`); imágenes en
+`src/assets/imgs/brand/`. Guía completa: [`business/don-jacobo-clon/LLM.md`](../business/don-jacobo-clon/LLM.md).
+
+Otras empresas del molde siguen consumiendo `msl-*` por CDN de este repo.
 
 ## Calidad
 
@@ -206,6 +280,89 @@ build generaba URLs como `/producto/1-camiseta-b-sica/`.
 **Regla.** Todo script que escriba en la API manda
 `content-type: application/json; charset=utf-8`. Ante un slug con guiones
 extraños, revisar el dato en origen antes de tocar el generador de slugs.
+
+### 8. `Number(getAttribute(…))` trata ausencia como 0
+**Qué pasó.** `msl-juego-escasez` pintaba «Quedan 0» aunque no hubiera `quedan`.
+**Causa raíz.** `getAttribute` sin attr es `null`; `Number(null) === 0`.
+**Regla.** Atributo numérico ausente o vacío = default del tag. `n(nombre, def)`
+no convierte `null` a 0.
+
+### 9. Primer `abrir("inicio")` pisa el hash del catálogo
+**Qué pasó.** Entrar a `#gamificacion` acababa en inicio porque el boot
+llamaba `abrir("inicio")` después de leer el hash.
+**Causa raíz.** Orden: kit carga → abrir inicio → hash se pierde.
+**Regla.** Tras `cargarKit`, abrir solo el hash (`location.hash`) o inicio si
+no hay hash. No reabrir inicio siempre.
+
+### 10. `Promise.all` del loader tumba el catálogo entero
+**Qué pasó.** Un componente 404 dejó la página en blanco.
+**Causa raíz.** Un rechazo aborta todos los tags.
+**Regla.** Un tag que falle no debe impedir el resto. Aislar cargas; no
+asumir que todos los paths existen.
+
+### 11. Crédito del pie robaba la marca
+**Qué pasó.** «Ronda · catálogo con Muéstralo» parecía una fila de marca.
+**Causa raíz.** `.msl-pie-capa { gap: 2rem }` más padding, no solo el
+`font-size` de `.pie-credito`.
+**Regla.** Watermark: ~0.6rem, opacity ~0.38, casi sin padding. El hueco
+vertical del grid es el ladrón; bájalo. No copies el kit a `business/*/dist`
+como fuente: el tenant consume CDN.
+
+### 12. Python `http.server` reset en Windows
+**Qué pasó.** Servir el catálogo con `python -m http.server` cortaba conexiones
+(ruta unicode / Muéstralo).
+**Causa raíz.** Entorno local, no el HTML.
+**Regla.** QA del catálogo: servidor estático Node, no `http.server`.
+
+### 13. PowerShell no acepta `&&`
+**Regla.** Encadenar con `;`.
+
+### 14. `MSL_CDN` relativo con `admin.js` en GitHub Pages
+**Qué pasó.** `window.MSL_CDN = "../cdn"` en `/admin/index.html` dejó el panel
+en blanco: `import(\`${KIT}/msl-loader.js\`)` resolvió contra
+`jeff-aporta.github.io/muestralo-admin/`, no contra la tienda.
+**Causa raíz.** Un `import()` dinámico con ruta relativa usa la URL **del
+módulo** (`admin.js` en Pages), no `document.baseURI`.
+**Regla.** Si el panel se carga desde Pages y el kit es local, `MSL_CDN` debe
+ser **absoluto** (`new URL("../cdn/", location.href)`). Nunca un string
+relativo. `htmlPaginaAdmin` en `marco.mjs` ya lo hornea así.
+
+### 15. Reportero is-errores: slug sin prefijo `web-`/`android-`
+**Qué pasó.** `crearReportero({ app: "don-jacobo-clon" })` lanza: el registro
+exige `^(android|web)-[a-z0-9][a-z0-9-]{0,40}$`.
+**Causa raíz.** El slug del tenant Muéstralo no es id de plataforma.
+**Regla.** Fronts: app fija `web-muestralo`, tenant en `contexto`. API:
+`web-muestralo-api`. Instalar solo en `cargarKit` (`instalarReportero`). CORS
+en is-errores (POST `/v1/errores` y GET `/v1/cliente.js`) es obligatorio para
+el navegador.
+
+### 16. Enlace Admin y sesión de desarrollador
+**Contrato.** Toda tienda hornea `/admin/` (`htmlPaginaAdmin`) y un enlace
+Admin en el pie (molde: Sitio; clon Don Jacobo: `.msl-pie-sello`). Login
+`jagudeloe` / cuenta en tenant `matriz` rol `DESARROLLADOR` (`*`). El login
+prueba el tenant y cae a matriz. No crear usuarios espejo por tienda.
+
+### 17. `css_vars` desde config en `aplicarTema`
+**Qué pasó.** Se inyectaban variables CSS de `GET /api/config` en `:root`.
+**Regla.** No. Marca = CSS local de la app. Sin paletas del tenant, no montar
+`is-palette-selector`. Ver `muestralo-api/LLM.md` §17.
+
+### 18. Fuente del clon fuera de `src/`
+**Qué pasó.** Don Jacobo tenía `css/`, `js/`, `media/marca/` y JSON en la raíz;
+el build copiaba todo `app/cdn` (msl-*) a `dist/cdn`.
+**Causa raíz.** Tratar el clon como molde business plano en vez de app WC con CDN propio.
+**Regla.** Clones con layout `src/` (Don Jacobo): no recrear `css/` ni `media/`
+ni `marca/` en la raíz. Build lee `src/`. Prefijo dominio `dj-*`; no `cp` del
+kit msl al dist del clon. Clave JSON/assets: **`brand`**.
+
+### 19. `rm -rf dist` tras escribir CDN (Windows)
+**Qué pasó.** `build.mjs` borraba `dist/` entero (incluido CDN recién compilado)
+y restauraba con tmp → crash nativo / buffer overrun en path con tilde.
+**Regla.** Al re-hornear sitio: limpiar entradas de `dist/` **excepto** `cdn/`.
+
+### 20. Dominio RAG `guideagents-jeff-aporta`
+**Qué pasó.** Consulta sin resultados.
+**Regla.** Preferencias Jeff: dominio **`guideagents-jeffrey`**.
 
 ## Gobernanza (aplica a los cuatro repos)
 
