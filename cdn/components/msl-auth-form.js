@@ -12,7 +12,7 @@ export class MslAuthForm extends HTMLElement {
     this.innerHTML = `
       <form class="msl-auth">
         ${titulo ? `<h3>${esc(titulo)}</h3>` : ""}
-        <is-input name="nickname" label="Nickname" hint="email o móvil" required autocomplete="username"></is-input>
+        <is-input name="nickname" label="Nickname" hint="email, móvil o usuario" required autocomplete="username"></is-input>
         <is-input name="password" type="password" password-toggle label="Contraseña" required minlength="4" autocomplete="current-password"></is-input>
         <is-button type="submit" data-x="entrar"><is-icon icon="mdi:login"></is-icon> Entrar</is-button>
         ${conRegistro ? `<is-button type="button" data-x="registro" variant="text">Crear cuenta</is-button>` : ""}

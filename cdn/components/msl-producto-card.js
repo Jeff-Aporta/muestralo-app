@@ -25,9 +25,11 @@ export class MslProductoCard extends HTMLElement {
           ? `<img slot="media" src="${esc(img)}" alt="${esc(p.nombre)}" loading="lazy">`
           : `<div slot="media" class="msl-sin-img"><is-icon icon="mdi:image-off-outline"></is-icon></div>`}
         <strong slot="header">${esc(p.nombre)}</strong>
-        <span class="msl-precio">${dinero(p.precio, p.moneda)}</span>
-        ${p.stock <= 0 ? `<is-badge>agotado</is-badge>` : ""}
-        ${Object.keys(vars).length ? `<small>${esc(Object.keys(vars).join(" · "))}</small>` : ""}
+        <div class="msl-card-cuerpo">
+          <span class="msl-precio">${dinero(p.precio, p.moneda)}</span>
+          ${p.stock <= 0 ? `<is-badge>agotado</is-badge>` : ""}
+          ${Object.keys(vars).length ? `<small>${esc(Object.keys(vars).join(" · "))}</small>` : ""}
+        </div>
         <div slot="actions" class="msl-acciones">
           <is-button data-x="ver" variant="text"><is-icon icon="mdi:eye"></is-icon> Ver</is-button>
           <is-button data-x="agregar" ${p.stock <= 0 ? "disabled" : ""}><is-icon icon="mdi:cart-plus"></is-icon> Agregar</is-button>
