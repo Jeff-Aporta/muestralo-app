@@ -6,21 +6,23 @@ construido** (molde en `app/molde/`, kit en `app/cdn/`, demo vivo en
 
 ## Tesis
 
-Un catálogo multi-sector se lee como un **índice impreso** —nombre, guía de
-puntos, precio— y no como una rejilla de tarjetas iguales. La identidad del
-comercio repinta ese índice entero sin tocar una línea de CSS.
+El **home** es la tienda ya abierta: vitrina con foto, colecciones y piezas
+en sala (`msl-vitrina-*` sobre `is-card` / `is-button`). El **catálogo** sigue
+siendo el índice completo. El demo existe para oler cómo se ve el comercio
+cuando Muéstralo ya está en producción.
 
 ## Fuente de los tokens
 
-No hay tokens propios de color. Todo sale de **is-webcomponents** (`--is-*`),
-consumido por CDN. La paleta de cada comercio la genera la API desde un solo
-color de marca (`GET /tema/{app}/{paleta}.css`, módulo `brand-palette.ts`) y se
-activa con `<html data-palette>`. El claro/oscuro va en `<html data-theme>` más
-las clases `theme-dark` / `theme-light`.
+No hay tokens propios de color en el **molde**. Todo sale de **is-webcomponents**
+(`--is-*`), consumido por CDN. El selector usa paletas de `GET /api/config`.
+La API **ya no** genera hojas en `GET /tema/{app}/{paleta}.css` (ruta podada).
+Claro/oscuro: `<html data-theme>` más `theme-dark` / `theme-light`.
 
-**Regla dura, sin excepción:** ningún CSS del ecosistema escribe un color
-literal. Si hace falta un color, existe un token; si no existe, se añade al
-generador de paletas, no al CSS de una vista.
+**Excepción:** un clon 1:1 del sitio del cliente (Don Jacobo) escribe hex en
+`css/app.css`. No mezclar esa hoja con el molde ni con `business/demo`.
+
+**Regla dura en molde y paneles:** ningún CSS del kit escribe un color
+literal. Si hace falta un color, existe un token.
 
 | Rol | Token |
 |---|---|
@@ -85,7 +87,7 @@ falta, se añade a esa hoja y lo reciben los tres fronts y todos los sitios.
 
 ## Qué se rechaza
 
-- Rejillas de tarjetas iguales (icono + título + texto) como estructura de página.
+- Rejillas de tarjetas iguales como **única** estructura de página (el home sí usa mosaico fotográfico; el catálogo sigue siendo índice).
 - Etiquetas o «kickers» encima de los títulos.
 - Texto con degradado; el énfasis va en peso y tamaño.
 - Números de sección salvo que la secuencia informe.

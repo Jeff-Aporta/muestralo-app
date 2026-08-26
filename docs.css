@@ -4,36 +4,78 @@
 html, body {
   margin: 0;
   min-height: 100%;
-  background: var(--is-bg);
-  color: var(--is-text);
+  background: var(--is-bg, #f6f8fa);
+  color: var(--is-text, #1b1f24);
   font-family: var(--is-sans, system-ui, sans-serif);
+}
+html.theme-dark, html[data-theme="dark"] {
+  background: var(--is-bg, #0b0d10);
+  color: var(--is-text, #e8eaed);
 }
 
 #topbar {
   position: sticky; top: 0; z-index: 10;
-  display: flex; align-items: center; gap: .8rem;
-  padding: .7rem 1.2rem;
-  background: var(--is-bg-elev);
+  display: flex; align-items: center; gap: .75rem;
+  padding: .55rem 1rem .55rem 1.1rem;
+  min-height: 3.2rem;
+  background: var(--is-bg-elev, var(--is-bg));
   color: var(--is-text);
   border-bottom: 1px solid var(--is-border-soft);
 }
-#topbar strong { display: inline-flex; align-items: center; gap: .45rem; color: var(--is-accent, var(--is-color-brand)); }
-#topbar .sub { color: var(--is-text-dim); font-size: .9rem; }
-#topbar .spacer { flex: 1; }
-#topbar a { color: var(--is-accent, var(--is-color-brand)); }
+#topbar strong { display: inline-flex; align-items: center; gap: .45rem; color: var(--is-accent, var(--is-color-brand)); white-space: nowrap; }
+#topbar .sub { color: var(--is-text-dim); font-size: .88rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#topbar .spacer { flex: 1; min-width: .5rem; }
+#topbar a { color: var(--is-accent, var(--is-color-brand)); white-space: nowrap; }
+#doc-tema,
+#doc-tema.msl-controles-tema {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  flex-shrink: 0;
+  height: 2.25rem;
+}
+#doc-tema is-palette-selector::part(trigger) {
+  background: transparent;
+  border: 1px solid var(--is-border-soft);
+  color: var(--is-text);
+  height: 2.25rem;
+  padding: 0 .65rem;
+  border-radius: var(--is-radius-sm, 8px);
+}
+#doc-tema is-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+}
 
-#cuerpo { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 52px); }
+#cuerpo { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 3.2rem); align-items: start; }
 
 #lateral {
   border-right: 1px solid var(--is-border-soft);
-  padding: 1rem .6rem;
+  padding: .85rem .55rem 1.4rem;
   background: var(--is-bg-elev);
+  overflow-y: auto;
+  position: sticky;
+  top: 3.2rem;
+  max-height: calc(100vh - 3.2rem);
 }
-#lateral button, #lateral is-button {
-  display: block; width: 100%; text-align: left;
-  border: none; background: none; cursor: pointer;
-  padding: .5rem .7rem; border-radius: var(--is-radius-sm, 8px);
-  font: inherit; color: inherit;
+#lateral is-button {
+  display: flex; width: 100%;
+  margin: 0 0 .15rem;
+  --is-control-min-height: 2rem;
+}
+#lateral is-button::part(button) {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 2rem;
+  padding: .3rem .65rem;
+  font-weight: 500;
+  box-shadow: none;
+}
+#lateral is-button[aria-pressed="true"]::part(button) {
+  font-weight: 600;
 }
 #lateral button[aria-pressed="true"],
 #lateral is-button[aria-pressed="true"] {
@@ -45,29 +87,37 @@ html, body {
   margin: .8rem .7rem .3rem;
   font-size: .75rem;
   text-transform: uppercase;
+  letter-spacing: .04em;
   color: var(--is-text-dim);
 }
 
-#contenido { padding: 1.6rem; max-width: 860px; }
+#contenido { padding: 1.6rem; max-width: 1080px; display: block; min-width: 0; }
 #contenido h1 { margin-top: 0; }
 
-.demo {
+/* Split: el host no tiene altura intrínseca (grid 1fr + overflow hidden). */
+.doc-split {
+  min-height: 28rem;
+  height: min(46rem, 82vh);
+  margin: 1rem 0;
   border: 1px solid var(--is-border-soft);
   border-radius: var(--is-radius, 12px);
-  padding: 1.2rem;
-  background: var(--is-bg-elev);
-  margin: 1rem 0;
-  max-width: 22rem;
+  overflow: hidden;
 }
-
-pre {
-  background: var(--is-code-bg);
-  color: var(--is-code-text);
+is-demo.demo img { max-height: 8rem; width: 100%; object-fit: cover; }
+is-demo.demo {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
   padding: 1rem;
-  border-radius: var(--is-radius-sm, 10px);
-  overflow-x: auto;
-  font-size: .85rem;
+  background: var(--is-bg-elev);
+  max-width: none;
+  margin: 0;
+  min-height: 100%;
 }
+.doc-vivo, .doc-fuente { min-height: 0; }
+.doc-fuente is-code { min-height: 100%; --is-code-min-height: 6rem; }
+.demo-juego { max-width: none; }
+is-code { font-size: 0.85em; min-height: 0; }
 
 table { border-collapse: collapse; width: 100%; }
 td, th {
