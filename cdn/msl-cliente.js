@@ -152,7 +152,23 @@ export const MslCliente = {
 
   // Métricas y tracking
   visita: (ruta) => llamar("POST", "/api/visitas", { ruta }).catch(() => {}),
+  interes: (datos) => llamar("POST", "/api/interes", datos).catch(() => {}),
+  permanencia: (producto_id, ms) =>
+    llamar("POST", "/api/interes", { producto_id, evento: "permanencia", ms }).catch(() => {}),
+  recomendaciones: (filtro = {}) => llamar("QUERY", "/api/recomendaciones", filtro),
   metricas: () => llamar("QUERY", "/api/metricas", {}),
+  // Recuento puntual {n}. Para vivo usar abrirMiradas (WebSocket).
+  miradas: (sku) => llamar("GET", `/api/miradas/${encodeURIComponent(estado.app)}/${encodeURIComponent(sku)}`),
+  // Sala en vivo: cada pestaña cuenta. Devuelve cortar() al salir.
+  abrirMiradas(sku, alCambiar) {
+    const base = String(estado.base).replace(/^http/i, "ws");
+    const url = `${base}/api/miradas/${encodeURIComponent(estado.app)}/${encodeURIComponent(sku)}`;
+    const ws = new WebSocket(url);
+    ws.onmessage = (ev) => {
+      try { alCambiar?.(JSON.parse(ev.data)); } catch { /* basura */ }
+    };
+    return () => { try { ws.close(); } catch { /* ya cerrado */ } };
+  },
 
   // Matriz
   tenants: () => llamar("GET", "/api/tenants"),
