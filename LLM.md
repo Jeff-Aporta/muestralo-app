@@ -99,8 +99,8 @@ Catálogo vivo en GitHub Pages del kit (`index.html` / `docs.js`), hashes
 
 ## Caché de lecturas (IndexedDB)
 
-Motor en el kit (`response-cache`); `cdn/msl-cache.js` es **fachada**. Spec local
-(gitignored): `specs/cache/spec.md`.
+Motor en el kit (`response-cache`); `cdn/msl-cache.js` es **fachada**. Spec:
+[`../specs/api/cache/spec.md`](../specs/api/cache/spec.md).
 
 Toda lectura puede pintarse **al instante** con la última respuesta conocida y
 rehacerse **solo si el servidor trae algo distinto**:
